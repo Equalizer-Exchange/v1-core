@@ -7,7 +7,7 @@ import "./interfaces/IEqual.sol";
 import "./interfaces/IVoter.sol";
 import "./interfaces/IVotingEscrow.sol";
 import "./interfaces/IMinter.sol";
-
+import "./interfaces/IERC20.sol";
 /**
 * @title Minter
 * @notice codifies the minting rules as per ve(3,3), abstracted from the token to support any token that allows minting
@@ -24,6 +24,9 @@ contract Minter is IMinter {
     IVotingEscrow public immutable _ve;
     IRewardsDistributor public immutable _rewards_distributor;
 
+    IERC20 public equalWftmPair;
+    uint internal constant EQUAL_WFTM_PAIR_RATE = 10;
+
     /// @notice represents a starting weekly emission of 50K EQUAL (EQUAL has 18 decimals)
     uint public weekly = 50000 * 1e18;
     uint public active_period;
@@ -38,6 +41,7 @@ contract Minter is IMinter {
     address public treasury;
     uint public treasuryRate;
     
+
     // uint public constant MAX_TEAM_RATE = 50; // 50 bps
     uint public constant MAX_TREASURY_RATE = 50; // 50 bps
 
@@ -108,6 +112,12 @@ contract Minter is IMinter {
         treasuryRate = _treasuryRate;
     }
 
+    function setEqualWftmPair(address _equalWftmPair) external {
+        require(msg.sender == team, "not team");
+        require(_equalWftmPair != address(0), "zero address");
+        equalWftmPair = IERC20(_equalWftmPair);
+    }
+
     /// @notice calculate circulating supply as total token supply - locked supply
     function circulating_supply() public view returns (uint) {
         return _equal.totalSupply() - _ve.totalSupply();
@@ -146,8 +156,9 @@ contract Minter is IMinter {
             weekly = weekly_emission();
 
             // uint _growth = calculate_growth(weekly);
-            uint _treasuryEmissions = (treasuryRate * weekly) / (PRECISION - treasuryRate);
-            uint _required = weekly + _treasuryEmissions;
+            uint _treasuryEmissions = (treasuryRate * weekly) / PRECISION;
+            uint _equalWftmPairEmissions = (EQUAL_WFTM_PAIR_RATE * weekly) / PRECISION;
+            uint _required = weekly + _treasuryEmissions + _equalWftmPairEmissions;
             uint _balanceOf = _equal.balanceOf(address(this));
             if (_balanceOf < _required) {
                 _equal.mint(address(this), _required - _balanceOf);
@@ -159,7 +170,8 @@ contract Minter is IMinter {
             if (numEpoch == 104) emission = 999;
 
             require(_equal.transfer(treasury, _treasuryEmissions));
-            // require(_equal.transfer(address(_rewards_distributor), _growth));
+            require(_equal.transfer(address(equalWftmPair), _equalWftmPairEmissions));
+
             // _rewards_distributor.checkpoint_token(); // checkpoint token balance that was just minted in rewards distributor
             // _rewards_distributor.checkpoint_total_supply(); // checkpoint supply
 
