@@ -12,11 +12,11 @@ contract EqualizerLibrary {
     }
 
     function _f(uint x0, uint y) internal pure returns (uint) {
-        return x0*(y*y/1e18*y/1e18)/1e18+(x0*x0/1e18*x0/1e18)*y/1e18;
+        return x0*(y*y/1e18*y/1e18)/1e18+(x0*x0/1e18*x0/1e18)*y/1e18; //xy^3 + x^3y
     }
 
     function _d(uint x0, uint y) internal pure returns (uint) {
-        return 3*x0*(y*y/1e18)/1e18+(x0*x0/1e18*x0/1e18);
+        return 3*x0*(y*y/1e18)/1e18+(x0*x0/1e18*x0/1e18); // 3xy^2 + x^3
     }
 
     function _get_y(uint x0, uint xy, uint y) internal pure returns (uint) {
