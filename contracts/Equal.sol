@@ -44,7 +44,7 @@ contract Equal is IEqual {
 
     // Initial mint: total 2.5M
     function initialMint(address _recipient) external {
-        require(msg.sender == minter && !initialMinted, "Neither minter nor already initialMinted");
+        require(msg.sender == minter && !initialMinted, "Not minter or already initialized");
         initialMinted = true;
         _mint(_recipient, 25 * 1e5 * 1e18);
     }
@@ -78,8 +78,8 @@ contract Equal is IEqual {
     }
 
     function transferFrom(address _from, address _to, uint _value) external returns (bool) {
-        uint allowed_from = allowance[_from][msg.sender];
-        if (allowed_from != type(uint).max) {
+        uint allowedFrom = allowance[_from][msg.sender];
+        if (allowedFrom != type(uint).max) {
             allowance[_from][msg.sender] -= _value;
         }
         return _transfer(_from, _to, _value);
