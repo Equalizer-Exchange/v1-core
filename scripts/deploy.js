@@ -54,14 +54,22 @@ async function main() {
 
   console.log("VeArtProxy deployed to:", veArtProxy.address); */
 
-  const veArtProxyAddr = "0x3b2eeD935af5E21e3ccB4C090ca60B5d2801ACb5";
+  /* const veArtProxyAddr = "0x3b2eeD935af5E21e3ccB4C090ca60B5d2801ACb5";
   const equalAddr = "0x9a5FdF8146467d70634fc48bEF67dD14B5A08757";
   const VotingEscrow = await hre.ethers.getContractFactory("VotingEscrow");
   const votingEscrow = await VotingEscrow.deploy(equalAddr, veArtProxyAddr);
 
   await votingEscrow.deployed();
 
-  console.log("VotingEscrow deployed to:", votingEscrow.address);
+  console.log("VotingEscrow deployed to:", votingEscrow.address); */
+
+  const votingEscrowAddr = "0x04d5038adc155f8705c546b15d243a986fee9984";
+  const RewardsDistributor = await hre.ethers.getContractFactory("RewardsDistributor");
+  const rewardsDistributor = await RewardsDistributor.deploy(votingEscrowAddr);
+
+  await rewardsDistributor.deployed();
+
+  console.log("RewardsDistributor deployed to:", rewardsDistributor.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
