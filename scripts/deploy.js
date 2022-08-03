@@ -63,8 +63,8 @@ async function main() {
 
   console.log("VotingEscrow deployed to:", votingEscrow.address); */
 
-  /* const votingEscrowAddr = "0x04d5038adc155f8705c546b15d243a986fee9984";
-  const RewardsDistributor = await hre.ethers.getContractFactory("RewardsDistributor");
+  const votingEscrowAddr = "0x04d5038adc155f8705c546b15d243a986fee9984";
+  /* const RewardsDistributor = await hre.ethers.getContractFactory("RewardsDistributor");
   const rewardsDistributor = await RewardsDistributor.deploy(votingEscrowAddr);
 
   await rewardsDistributor.deployed();
@@ -78,12 +78,28 @@ async function main() {
 
   console.log("GaugeFactory deployed to:", gaugeFactory.address); */
 
-  const BribeFactory = await hre.ethers.getContractFactory("BribeFactory");
+  /* const BribeFactory = await hre.ethers.getContractFactory("BribeFactory");
   const bribeFactory = await BribeFactory.deploy();
 
   await bribeFactory.deployed();
 
-  console.log("BribeFactory deployed to:", bribeFactory.address);
+  console.log("BribeFactory deployed to:", bribeFactory.address); */
+
+  const pairFactoryAddr = "0x59aa4da57efd24255f58490c69b81ecfad20d70b";
+  const gaugeFactoryAddr = "0x9d5142ca7978d75e693014dcbb4e7dd076d6a77f";
+  const bribeFactoryAddr = "0x0a7029cb0949da11dda4228fc780b723141e8329";
+
+  const Voter = await hre.ethers.getContractFactory("Voter");
+  const voter = await Voter.deploy(
+    votingEscrowAddr,
+    pairFactoryAddr,
+    gaugeFactoryAddr,
+    bribeFactoryAddr
+  );
+
+  await voter.deployed();
+
+  console.log("Voter deployed to:", voter.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
