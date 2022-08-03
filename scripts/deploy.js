@@ -63,13 +63,20 @@ async function main() {
 
   console.log("VotingEscrow deployed to:", votingEscrow.address); */
 
-  const votingEscrowAddr = "0x04d5038adc155f8705c546b15d243a986fee9984";
+  /* const votingEscrowAddr = "0x04d5038adc155f8705c546b15d243a986fee9984";
   const RewardsDistributor = await hre.ethers.getContractFactory("RewardsDistributor");
   const rewardsDistributor = await RewardsDistributor.deploy(votingEscrowAddr);
 
   await rewardsDistributor.deployed();
 
-  console.log("RewardsDistributor deployed to:", rewardsDistributor.address);
+  console.log("RewardsDistributor deployed to:", rewardsDistributor.address); */
+
+  const GaugeFactory = await hre.ethers.getContractFactory("GaugeFactory");
+  const gaugeFactory = await GaugeFactory.deploy();
+
+  await gaugeFactory.deployed();
+
+  console.log("GaugeFactory deployed to:", gaugeFactory.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
