@@ -71,12 +71,19 @@ async function main() {
 
   console.log("RewardsDistributor deployed to:", rewardsDistributor.address); */
 
-  const GaugeFactory = await hre.ethers.getContractFactory("GaugeFactory");
+  /* const GaugeFactory = await hre.ethers.getContractFactory("GaugeFactory");
   const gaugeFactory = await GaugeFactory.deploy();
 
   await gaugeFactory.deployed();
 
-  console.log("GaugeFactory deployed to:", gaugeFactory.address);
+  console.log("GaugeFactory deployed to:", gaugeFactory.address); */
+
+  const BribeFactory = await hre.ethers.getContractFactory("BribeFactory");
+  const bribeFactory = await BribeFactory.deploy();
+
+  await bribeFactory.deployed();
+
+  console.log("BribeFactory deployed to:", bribeFactory.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
