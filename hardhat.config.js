@@ -49,7 +49,7 @@ module.exports = {
       chainId: 250
     },
     fantomtest: {
-      url: "https://rpc.testnet.fantom.network",
+      url: "https://rpc.testnet.fantom.network/",
       accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
       chainId: 4002
     }

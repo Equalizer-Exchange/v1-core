@@ -85,7 +85,7 @@ async function main() {
 
   console.log("BribeFactory deployed to:", bribeFactory.address); */
 
-  const pairFactoryAddr = "0x59aa4da57efd24255f58490c69b81ecfad20d70b";
+  /* const pairFactoryAddr = "0x59aa4da57efd24255f58490c69b81ecfad20d70b";
   const gaugeFactoryAddr = "0x9d5142ca7978d75e693014dcbb4e7dd076d6a77f";
   const bribeFactoryAddr = "0x0a7029cb0949da11dda4228fc780b723141e8329";
 
@@ -99,7 +99,21 @@ async function main() {
 
   await voter.deployed();
 
-  console.log("Voter deployed to:", voter.address);
+  console.log("Voter deployed to:", voter.address); */
+  
+  const voterAddr = "0x6f26b417f2622ed65a964b37db815998849c2518";
+  const reDisAddr = "0xb77Cf82B553fc6Ba65d995A4d3a2BDc72966bD18";
+
+  const Minter = await hre.ethers.getContractFactory("Minter");
+  const minter = await Minter.deploy(
+    voterAddr,
+    votingEscrowAddr,
+    reDisAddr
+  );
+
+  await minter.deployed();
+
+  console.log("Minter deployed to:", minter.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
