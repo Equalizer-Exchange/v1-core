@@ -184,6 +184,10 @@ contract ExternalBribe is IBribe {
         return rewards.length;
     }
 
+    function rewardAddr(uint i) external view returns(address) {
+        return rewards[i];
+    }
+
     // returns the last time the reward was modified or periodFinish if the reward has ended
     function lastTimeRewardApplicable(address token) public view returns (uint) {
         return Math.min(block.timestamp, periodFinish[token]);
@@ -329,5 +333,15 @@ contract ExternalBribe is IBribe {
         (bool success, bytes memory data) =
         token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, value));
         require(success && (data.length == 0 || abi.decode(data, (bool))));
+    }
+
+    function getCheckpoints(uint _tokenId, uint _i) public view returns (uint, uint) {
+        Checkpoint storage checkpoint = checkpoints[_tokenId][_i];
+        return (checkpoint.timestamp, checkpoint.balanceOf);
+    }
+
+    function getSupplyCheckpoints(uint _i) public view returns (uint, uint) {
+        SupplyCheckpoint storage supplyCheckpoint = supplyCheckpoints[_i];
+        return (supplyCheckpoint.timestamp, supplyCheckpoint.supply);
     }
 }
