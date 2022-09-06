@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.9;
 
+import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+
 import "./libraries/Math.sol";
 import "./interfaces/IRewardsDistributor.sol";
 import "./interfaces/IEqual.sol";
@@ -8,6 +10,7 @@ import "./interfaces/IVoter.sol";
 import "./interfaces/IVotingEscrow.sol";
 import "./interfaces/IMinter.sol";
 import "./interfaces/IERC20.sol";
+
 /**
 * @title Minter
 * @notice codifies the minting rules as per ve(3,3), abstracted from the token to support any token that allows minting

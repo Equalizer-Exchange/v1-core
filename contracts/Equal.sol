@@ -2,8 +2,9 @@
 pragma solidity 0.8.9;
 
 import "./interfaces/IEqual.sol";
+import "./libraries/Ownable.sol";
 
-contract Equal is IEqual {
+contract Equal is IEqual, Ownable {
 
     string public constant name = "Equalizer";
     string public constant symbol = "EQUAL";
@@ -15,36 +16,27 @@ contract Equal is IEqual {
 
     bool public initialMinted;
     address public minter;
-    address public redemptionReceiver;
     address public merkleClaim;
 
     event Transfer(address indexed from, address indexed to, uint value);
     event Approval(address indexed owner, address indexed spender, uint value);
 
     constructor() {
-        minter = msg.sender;
         _mint(msg.sender, 0);
     }
-
+    
     // No checks as its meant to be once off to set minting rights to BaseV1 Minter
-    function setMinter(address _minter) external {
-        require(msg.sender == minter, "Not minter");
+    function setMinter(address _minter) external onlyOwner {
         minter = _minter;
     }
 
-    function setRedemptionReceiver(address _receiver) external {
-        require(msg.sender == minter, "Not minter");
-        redemptionReceiver = _receiver;
-    }
-
-    function setMerkleClaim(address _merkleClaim) external {
-        require(msg.sender == minter, "Not minter");
+    function setMerkleClaim(address _merkleClaim) external onlyOwner {
         merkleClaim = _merkleClaim;
     }
 
     // Initial mint: total 2.5M
-    function initialMint(address _recipient) external {
-        require(msg.sender == minter && !initialMinted, "Not minter or already initialized");
+    function initialMint(address _recipient) external onlyOwner {
+        require(!initialMinted, "Already initial minted");
         initialMinted = true;
         _mint(_recipient, 25 * 1e5 * 1e18);
     }
@@ -92,7 +84,7 @@ contract Equal is IEqual {
     }
 
     function claim(address account, uint amount) external returns (bool) {
-        require(msg.sender == redemptionReceiver || msg.sender == merkleClaim, "Neither redemptionReceiver nor merkleClaim");
+        require(msg.sender == merkleClaim, "Not merkleClaim");
         _mint(account, amount);
         return true;
     }
