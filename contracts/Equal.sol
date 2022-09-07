@@ -16,7 +16,6 @@ contract Equal is IEqual, Ownable {
 
     bool public initialMinted;
     address public minter;
-    address public merkleClaim;
 
     event Transfer(address indexed from, address indexed to, uint value);
     event Approval(address indexed owner, address indexed spender, uint value);
@@ -28,10 +27,6 @@ contract Equal is IEqual, Ownable {
     // No checks as its meant to be once off to set minting rights to BaseV1 Minter
     function setMinter(address _minter) external onlyOwner {
         minter = _minter;
-    }
-
-    function setMerkleClaim(address _merkleClaim) external onlyOwner {
-        merkleClaim = _merkleClaim;
     }
 
     // Initial mint: total 2.5M
@@ -79,12 +74,6 @@ contract Equal is IEqual, Ownable {
 
     function mint(address account, uint amount) external returns (bool) {
         require(msg.sender == minter, "Not minter");
-        _mint(account, amount);
-        return true;
-    }
-
-    function claim(address account, uint amount) external returns (bool) {
-        require(msg.sender == merkleClaim, "Not merkleClaim");
         _mint(account, amount);
         return true;
     }
