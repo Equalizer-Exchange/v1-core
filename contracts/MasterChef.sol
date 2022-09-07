@@ -64,6 +64,7 @@ contract MasterChef is Ownable {
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
     event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
+    event Harvest(address indexed user, uint256 totalReward, uint256 tokenId);
 
     constructor(
         address _ve,
@@ -238,11 +239,14 @@ contract MasterChef is Ownable {
                 }
             }
         }
+        uint256 tokenId;
         if (totalPending > 0) {
             // modified
             // safeEQUALTransfer(msg.sender, totalPending); 
-            ve.create_lock_for(totalPending, LOCK, msg.sender); // added
+            equal.approve(address(ve), totalPending);
+            tokenId = ve.create_lock_for(totalPending, LOCK, msg.sender); // added
         }
+        emit Harvest(msg.sender, totalPending, tokenId);
     }
 
     // Withdraw without caring about rewards. EMERGENCY ONLY.
