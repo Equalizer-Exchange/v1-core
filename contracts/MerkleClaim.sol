@@ -2,16 +2,20 @@
 pragma solidity 0.8.9;
 
 import "./libraries/MerkleProof.sol";
+import "./libraries/Ownable.sol";
 import "./interfaces/IEqual.sol";
 import "./interfaces/IVotingEscrow.sol";
 
 /// @title MerkleClaim
 /// @notice Claims EQUAL for members of a merkle tree
 /// @author Modified from Merkle Airdrop Starter (https://github.com/Anish-Agnihotri/merkle-airdrop-starter/blob/master/contracts/src/MerkleClaimERC20.sol)
-contract MerkleClaim {
+contract MerkleClaim is Ownable {
     /// @notice max lock period 26 weeeks
-    uint internal constant LOCK = 86400 * 7 * 26;
+    uint256 public constant LOCK = 86400 * 7 * 26;
+    uint256 public constant MAX_AMOUNT = 500_000 * 10 ** 18;
 
+    uint256 public duration;
+    uint256 public startTime;
     /// ============ Immutable storage ============
     IVotingEscrow public immutable ve;
     /// @notice EQUAL token to claim
@@ -32,24 +36,46 @@ contract MerkleClaim {
     /// @notice Creates a new MerkleClaim contract
     /// @param _ve address
     /// @param _merkleRoot of claimees
-    constructor(address _ve, bytes32 _merkleRoot) {
+    /// @param _duration duration for airdrop
+    constructor(address _ve, bytes32 _merkleRoot, uint256 _duration) {
         ve = IVotingEscrow(_ve);
         equal = IEqual(IVotingEscrow(_ve).token());
         merkleRoot = _merkleRoot;
+        duration = _duration;
 
         boostAmount[1] = 150;
         boostAmount[2] = 220;
         boostAmount[3] = 300;
     }
 
-    /// ============ Events ============
+    /* ============ Events ============ */
 
     /// @notice Emitted after a successful token claim
     /// @param to recipient of claim
     /// @param amount of veTokens claimed
-    event Claim(address indexed to, uint256 amount);
+    /// @param tokenId veToken NFT Id
+    event Claim(address indexed to, uint256 amount, uint256 tokenId);
 
-    /// ============ Functions ============
+    /// @notice Emitted after a successful withdrawal of remaining tokens
+    /// @param recipient recipient of remaining tokens
+    /// @param amount of remaining tokens
+    event Withdrawal(address indexed recipient, uint256 amount);
+
+    /* ============ Functions ============ */
+
+    /// @notice set start time for airdrop
+    /// @param _startTime start time (in seconds)
+    function setStartTime(uint256 _startTime) external onlyOwner {
+        require(_startTime > block.timestamp, "Invalid start time");
+        startTime = _startTime;
+    }
+
+    /// @notice set duration for airdrop
+    /// @param _duration duration (in days)
+    function setDuration(uint256 _duration) external onlyOwner {
+        require(_duration > 0, "Invalid duration days");
+        duration = _duration;
+    }
 
     /// @notice Allows claiming tokens if address is part of merkle tree
     /// @param _to address of claimee
@@ -60,6 +86,10 @@ contract MerkleClaim {
         uint256 _boostLevel,
         bytes32[] calldata _proof
     ) external {
+        uint256 endTime = startTime + duration * 86400;
+        // check valid timestamp
+        require(block.timestamp >= startTime && block.timestamp <= endTime, "Airdrop is not started yet or already finished");
+        
         // Throw if address has already claimed tokens
         require(!hasClaimed[_to], "ALREADY_CLAIMED");
 
@@ -68,13 +98,25 @@ contract MerkleClaim {
         bool isValidLeaf = MerkleProof.verify(_proof, merkleRoot, leaf);
         require(isValidLeaf, "NOT_IN_MERKLE");
 
+        require(equal.balanceOf(address(this)) >= boostAmount[_boostLevel], "All tokens were already claimed");
+
         // Set address to claimed
         hasClaimed[_to] = true;
 
-        // Claim tokens for address
-        // require(EQUAL.claim(to, amount), "CLAIM_FAILED");
-        ve.create_lock_for(boostAmount[_boostLevel], LOCK, msg.sender);
+        equal.approve(address(ve), boostAmount[_boostLevel]);
+        // Claim veEQUALs for address
+        uint256 tokenId = ve.create_lock_for(boostAmount[_boostLevel], LOCK, _to);
         // Emit claim event
-        emit Claim(_to, boostAmount[_boostLevel]);
+        emit Claim(_to, boostAmount[_boostLevel], tokenId);
+    }
+
+    /// @notice withdraw remaining tokens if airdrop is finished
+    function withdrawEQUAL(address _recipient) external onlyOwner {
+        require(block.timestamp > startTime + duration * 86400, "Airdrop is not finished yet");
+        uint256 remaining = equal.balanceOf(address(this));
+        require(remaining > 0, "No remaining tokens");
+        equal.transfer(_recipient, remaining);
+        // Emit withdrawal event
+        emit Withdrawal(_recipient, remaining);
     }
 }
