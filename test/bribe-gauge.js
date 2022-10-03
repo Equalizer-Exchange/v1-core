@@ -3,7 +3,7 @@ const { ethers } = require("hardhat");
 
 describe("Bribe", () => {
     let owner, owner2, owner3;
-    let pairFactory, router, voter, ve;
+    let pairFactory, router, voter, ve, wrappedExternalBribeFactory;
     let usdt, mim, dai;
     let pair, pair2, pair3, gauge, gauge2;
     
@@ -39,6 +39,10 @@ describe("Bribe", () => {
             bribe_factory.address
         );
         await voter.deployed();
+
+        const WrappedExternalBribeFactory = await ethers.getContractFactory("WrappedExternalBribeFactory");
+        wrappedExternalBribeFactory = await WrappedExternalBribeFactory.deploy(voter.address);
+        await wrappedExternalBribeFactory.deployed();
 
         const Router = await ethers.getContractFactory("Router");
         router = await Router.deploy(pairFactory.address, owner.address);
@@ -136,6 +140,9 @@ describe("Bribe", () => {
         const ExternalBribe = await ethers.getContractFactory("ExternalBribe");
         external_bribe = await ExternalBribe.attach(external_bribe_address);
         external_bribe2 = await ExternalBribe.attach(external_bribe_address2);
+        
+        await wrappedExternalBribeFactory.createBribe(external_bribe_address);
+        await wrappedExternalBribeFactory.createBribe(external_bribe_address2);
 
         await pair.approve(gauge.address, pair_1000);
         await gauge.deposit(pair_1000, 0);
