@@ -729,7 +729,6 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         if (_value != 0 && deposit_type != DepositType.MERGE_TYPE) {
             assert(IERC20(token).transferFrom(from, address(this), _value));
         }
-
         emit Deposit(from, _tokenId, _value, _locked.end, deposit_type, block.timestamp);
         emit Supply(supply_before, supply_before + _value);
     }
