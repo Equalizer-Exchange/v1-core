@@ -1,9 +1,9 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("Bribe", () => {
+describe("Bribe/Gauge/Vote Test Suite", () => {
     let owner, owner2, owner3;
-    let pairFactory, router, voter, ve, wrappedExternalBribeFactory;
+    let pairFactory, router, voter, ve, wrappedExternalBribeFactory, equal;
     let usdt, mim, dai;
     let pair, pair2, pair3, gauge, gauge2;
     
@@ -18,7 +18,7 @@ describe("Bribe", () => {
         const veArtProxy = await VeArtProxy.deploy();
   
         const EqualFactory = await ethers.getContractFactory("Equal");
-        const equal = await EqualFactory.deploy();
+        equal = await EqualFactory.deploy();
 
         const VotingEscrow = await ethers.getContractFactory("VotingEscrow");
         ve = await VotingEscrow.deploy(equal.address, veArtProxy.address);
@@ -152,5 +152,29 @@ describe("Bribe", () => {
 
         expect(await gauge.totalSupply()).to.equal(pair_1000);
         expect(await gauge.earned(ve.address, owner.address)).to.equal(0);
+    });
+
+    describe("Vote()", async () => {
+        before(async () => {
+            await ve.setVoter(voter.address);
+            await equal.setMinter(owner.address);
+            const equalTokenAmount = ethers.utils.parseUnits("1000", 18);
+            await equal.mint(owner2.address, equalTokenAmount);
+        })
+        it("Create lock", async () => {
+            const lockAmount = ethers.utils.parseUnits("100", 18);
+            const lockDuration = 13 * 7 * 24 * 3600;
+            await equal.connect(owner2).approve(ve.address, lockAmount);
+            expect(await ve.connect(owner2).create_lock(lockAmount, lockDuration)).to.be.emit(ve, "Deposit");
+            expect(await equal.balanceOf(ve.address)).to.be.equal(lockAmount);
+        });
+
+        it("Vote", async () => {
+            const tokenId = await ve.tokenOfOwnerByIndex(owner2.address, 0);
+            console.log(await ve.balanceOfNFT(tokenId));
+            await ve.connect(owner2).approve(voter.address, tokenId);
+            await voter.connect(owner2).vote(tokenId, [pair.address], [10000]);
+            console.log(await ve.balanceOfNFT(tokenId));
+        });
     });
 });
