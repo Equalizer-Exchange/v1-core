@@ -52,7 +52,7 @@ contract WrappedExternalBribe {
     // simple re-entrancy check
     uint internal _unlocked = 1;
     modifier lock() {
-        require(_unlocked == 1);
+        require(_unlocked == 1, "No re-entrancy");
         _unlocked = 2;
         _;
         _unlocked = 1;
@@ -79,7 +79,7 @@ contract WrappedExternalBribe {
 
     // allows a user to claim rewards for a given token
     function getReward(uint tokenId, address[] memory tokens) external lock  {
-        require(IVotingEscrow(_ve).isApprovedOrOwner(msg.sender, tokenId));
+        require(IVotingEscrow(_ve).isApprovedOrOwner(msg.sender, tokenId), "Not approved or not owner");
         for (uint i = 0; i < tokens.length; i++) {
             uint _reward = earned(tokens[i], tokenId);
             lastEarn[tokens[i]][tokenId] = block.timestamp;
@@ -91,7 +91,7 @@ contract WrappedExternalBribe {
 
     // used by Voter to allow batched reward claims
     function getRewardForOwner(uint tokenId, address[] memory tokens) external lock  {
-        require(msg.sender == voter);
+        require(msg.sender == voter, "Not voter");
         address _owner = IVotingEscrow(_ve).ownerOf(tokenId);
         for (uint i = 0; i < tokens.length; i++) {
             uint _reward = earned(tokens[i], tokenId);
@@ -103,46 +103,36 @@ contract WrappedExternalBribe {
     }
 
     function earned(address token, uint tokenId) public view returns (uint) {
-        uint _startTimestamp = lastEarn[token][tokenId];
         if (underlying_bribe.numCheckpoints(tokenId) == 0) {
             return 0;
         }
 
-        uint _startIndex = underlying_bribe.getPriorBalanceIndex(tokenId, _startTimestamp);
-        uint _endIndex = underlying_bribe.numCheckpoints(tokenId)-1;
-
         uint reward = 0;
-        // you only earn once per epoch (after it's over)
-        RewardCheckpoint memory prevRewards;
-        prevRewards.timestamp = _bribeStart(_startTimestamp);
-        uint _prevTs = 0;
-        uint _prevBal = 0;
-        uint _prevSupply = 1;
+        uint _ts = 0;
+        uint _bal = 0;
+        uint _supply = 1;
+        uint _index = 0;
+        uint _currTs = _bribeStart(lastEarn[token][tokenId]); // take epoch last claimed in as starting point
 
+        _index = underlying_bribe.getPriorBalanceIndex(tokenId, _currTs);
+        (_ts, _bal) = underlying_bribe.getCheckpoints(tokenId,_index);
+        // accounts for case where lastEarn is before first checkpoint
+        _currTs = Math.max(_currTs, _bribeStart(_ts)); 
 
-        if (_endIndex > 0) {
-            for (uint i = _startIndex; i <= _endIndex - 1; i++) {
-                (_prevTs, _prevBal) = underlying_bribe.getCheckpoints(tokenId, i);
-                uint _nextEpochStart = _bribeStart(_prevTs);
-                // check that you've earned it
-                // this won't happen until a week has passed
-                if (_nextEpochStart > prevRewards.timestamp) {
-                  reward += prevRewards.balance;
-                }
+        // get epochs between current epoch and first checkpoint in same epoch as last claim
+        uint numEpochs = (_bribeStart(block.timestamp) - _currTs) / DURATION;
 
-                prevRewards.timestamp = _nextEpochStart;
-                (, _prevSupply) = underlying_bribe.getSupplyCheckpoints(underlying_bribe.getPriorSupplyIndex(_nextEpochStart + DURATION));
-                prevRewards.balance = _prevBal * tokenRewardsPerEpoch[token][_nextEpochStart] / _prevSupply;
+        if (numEpochs > 0) {
+            for (uint256 i = 0; i < numEpochs; i++) {
+                // get index of last checkpoint in this epoch
+                _index = underlying_bribe.getPriorBalanceIndex(tokenId, _currTs + DURATION); 
+                // get checkpoint in this epoch
+                (_ts, _bal) = underlying_bribe.getCheckpoints(tokenId,_index);
+                // get supply of last checkpoint in this epoch
+                (, _supply) = underlying_bribe.getSupplyCheckpoints(underlying_bribe.getPriorSupplyIndex(_currTs + DURATION));
+                reward += _bal * tokenRewardsPerEpoch[token][_currTs] / _supply;
+                _currTs += DURATION;
             }
-        }
-
-        (_prevTs, _prevBal) = underlying_bribe.getCheckpoints(tokenId,_endIndex);
-        uint _lastEpochStart = _bribeStart(_prevTs);
-        uint _lastEpochEnd = _lastEpochStart + DURATION;
-
-        if (block.timestamp > _lastEpochEnd && _startTimestamp < _lastEpochEnd) {
-            (, _prevSupply) = underlying_bribe.getSupplyCheckpoints(underlying_bribe.getPriorSupplyIndex(_lastEpochEnd));
-            reward += _prevBal * tokenRewardsPerEpoch[token][_lastEpochStart] / _prevSupply;
         }
 
         return reward;
@@ -154,7 +144,7 @@ contract WrappedExternalBribe {
     }
 
     function notifyRewardAmount(address token, uint amount) external lock {
-        require(amount > 0);
+        require(amount > 0, "Should be non-zero amount");
         if (!isReward[token]) {
           require(IVoter(voter).isWhitelisted(token), "bribe tokens must be whitelisted");
           require(rewards.length < MAX_REWARD_TOKENS, "too many rewards tokens");
@@ -178,23 +168,23 @@ contract WrappedExternalBribe {
 
     function swapOutRewardToken(uint i, address oldToken, address newToken) external {
         require(msg.sender == IVotingEscrow(_ve).team(), "only team");
-        require(rewards[i] == oldToken);
+        require(rewards[i] == oldToken, "Not old token");
         isReward[oldToken] = false;
         isReward[newToken] = true;
         rewards[i] = newToken;
     }
 
     function _safeTransfer(address token, address to, uint256 value) internal {
-        require(token.code.length > 0);
+        require(token.code.length > 0, "Invalid token address");
         (bool success, bytes memory data) =
         token.call(abi.encodeWithSelector(IERC20.transfer.selector, to, value));
-        require(success && (data.length == 0 || abi.decode(data, (bool))));
+        require(success && (data.length == 0 || abi.decode(data, (bool))), "SafeTransfer failed");
     }
 
     function _safeTransferFrom(address token, address from, address to, uint256 value) internal {
-        require(token.code.length > 0);
+        require(token.code.length > 0, "Invalid token address");
         (bool success, bytes memory data) =
         token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, value));
-        require(success && (data.length == 0 || abi.decode(data, (bool))));
+        require(success && (data.length == 0 || abi.decode(data, (bool))), "SafeTransferFrom failed");
     }
 }
