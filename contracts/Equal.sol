@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.9;
 
-import "./interfaces/IEqual.sol";
-import "./libraries/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract Equal is IEqual, Ownable {
+contract Equal is OwnableUpgradeable {
 
     string public constant name = "Equalizer";
     string public constant symbol = "EQUAL";
     uint8 public constant decimals = 18;
-    uint public totalSupply = 0;
+    uint256 private totalSupply;
 
     mapping(address => uint) public balanceOf;
     mapping(address => mapping(address => uint)) public allowance;
@@ -20,10 +19,11 @@ contract Equal is IEqual, Ownable {
     event Transfer(address indexed from, address indexed to, uint value);
     event Approval(address indexed owner, address indexed spender, uint value);
 
-    constructor() {
+    function initialize() public initializer {
+        __Ownable_init();
         _mint(msg.sender, 0);
     }
-    
+
     // No checks as its meant to be once off to set minting rights to BaseV1 Minter
     function setMinter(address _minter) external onlyOwner {
         minter = _minter;
