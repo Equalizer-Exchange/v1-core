@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.9;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/IPair.sol";
 import "./interfaces/IRouter.sol";
 
-contract EqualizerLibrary {
-    IRouter internal immutable router;
+contract EqualizerLibrary is Initializable {
+    IRouter internal router;
 
-    constructor(address _router) {
+    function initialize(address _router) public initializer {
         router = IRouter(_router);
     }
 
