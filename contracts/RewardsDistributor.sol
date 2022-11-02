@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.9;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./libraries/Math.sol";
 import "./interfaces/IERC20.sol";
 import "./interfaces/IVotingEscrow.sol";
@@ -9,7 +10,7 @@ import "./interfaces/IRewardsDistributor.sol";
 /** 
 * @title Curve Fee Distribution modified for ve(3,3) emissions
 */
-contract RewardsDistributor is IRewardsDistributor {
+contract RewardsDistributor is Initializable {
 
     event CheckpointToken(
         uint time,
@@ -41,7 +42,7 @@ contract RewardsDistributor is IRewardsDistributor {
 
     address public depositor;
 
-    constructor(address _voting_escrow) {
+    function initialize(address _voting_escrow) public initializer {
         uint _t = block.timestamp / WEEK * WEEK;
         start_time = _t;
         last_token_time = _t;
@@ -312,7 +313,7 @@ contract RewardsDistributor is IRewardsDistributor {
 
     // Once off event on contract initialize
     function setDepositor(address _depositor) external {
-        require(msg.sender == depositor);
+        require(msg.sender == depositor, "Not depositor");
         depositor = _depositor;
     }
 }
