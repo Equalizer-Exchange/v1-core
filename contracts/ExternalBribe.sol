@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.9;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./libraries/Math.sol";
-import "./interfaces/IBribe.sol";
 import "./interfaces/IERC20.sol";
 import "./interfaces/IGauge.sol";
 import "./interfaces/IVoter.sol";
@@ -13,9 +13,22 @@ import "./interfaces/IVotingEscrow.sol";
  * goes hand in hand with Voter.vote()
  */
 
-contract ExternalBribe is IBribe {
-    address public immutable voter; // only voter can modify balances (since it only happens on vote())
-    address public immutable _ve;
+contract ExternalBribe is Initializable {
+    
+    /// @notice A checkpoint for marking balance
+    struct Checkpoint {
+        uint timestamp;
+        uint balanceOf;
+    }
+
+    /// @notice A checkpoint for marking supply
+    struct SupplyCheckpoint {
+        uint timestamp;
+        uint supply;
+    }
+
+    address public voter; // only voter can modify balances (since it only happens on vote())
+    address public _ve;
 
     uint internal constant DURATION = 7 days; // rewards are released over the voting period
     uint internal constant MAX_REWARD_TOKENS = 16;
@@ -30,19 +43,6 @@ contract ExternalBribe is IBribe {
 
     address[] public rewards;
     mapping(address => bool) public isReward;
-
-    /// @notice A checkpoint for marking balance
-    struct Checkpoint {
-        uint timestamp;
-        uint balanceOf;
-    }
-
-    /// @notice A checkpoint for marking supply
-    struct SupplyCheckpoint {
-        uint timestamp;
-        uint supply;
-    }
-
     /// @notice A record of balance checkpoints for each account, by index
     mapping (uint => mapping (uint => Checkpoint)) public checkpoints;
     /// @notice The number of checkpoints for each account
@@ -51,13 +51,22 @@ contract ExternalBribe is IBribe {
     mapping (uint => SupplyCheckpoint) public supplyCheckpoints;
     /// @notice The number of checkpoints
     uint public supplyNumCheckpoints;
+    /// @notice simple re-entrancy check
+    bool internal _locked;
 
     event Deposit(address indexed from, uint tokenId, uint amount);
     event Withdraw(address indexed from, uint tokenId, uint amount);
     event NotifyReward(address indexed from, address indexed reward, uint epoch, uint amount);
     event ClaimRewards(address indexed from, address indexed reward, uint amount);
 
-    constructor(address _voter, address[] memory _allowedRewardTokens) {
+    modifier lock() {
+        require(!_locked,  "No re-entrancy");
+        _locked = true;
+        _;
+        _locked = false;
+    }
+
+    function initialize(address _voter, address[] memory _allowedRewardTokens) public initializer {
         voter = _voter;
         _ve = IVoter(_voter)._ve();
 
@@ -67,15 +76,6 @@ contract ExternalBribe is IBribe {
                 rewards.push(_allowedRewardTokens[i]);
             }
         }
-    }
-
-    // simple re-entrancy check
-    uint internal _unlocked = 1;
-    modifier lock() {
-        require(_unlocked == 1, "No re-entrancy");
-        _unlocked = 2;
-        _;
-        _unlocked = 1;
     }
 
     function _bribeStart(uint timestamp) internal pure returns (uint) {

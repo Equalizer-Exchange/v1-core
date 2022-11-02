@@ -10,12 +10,16 @@ contract BribeFactory is IBribeFactory {
     address public lastExternalBribe;
 
     function createInternalBribe(address[] memory _allowedRewards) external returns (address) {
-        lastInternalBribe = address(new InternalBribe(msg.sender, _allowedRewards));
+        InternalBribe internalBribe = new InternalBribe();
+        internalBribe.initialize(msg.sender, _allowedRewards);
+        lastInternalBribe = address(internalBribe);
         return lastInternalBribe;
     }
 
     function createExternalBribe(address[] memory _allowedRewards) external returns (address) {
-        lastExternalBribe = address(new ExternalBribe(msg.sender, _allowedRewards));
+        ExternalBribe externalBribe = new ExternalBribe();
+        externalBribe.initialize(msg.sender, _allowedRewards);
+        lastExternalBribe = address(externalBribe);
         return lastExternalBribe;
     }
 }

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.9;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./libraries/Math.sol";
 import "./interfaces/IBribe.sol";
 import "./interfaces/IERC20.sol";
@@ -12,10 +13,28 @@ import "./interfaces/IVotingEscrow.sol";
  * goes hand in hand with Voter.vote()
  */
 
-contract InternalBribe is IBribe {
+contract InternalBribe is Initializable {
 
-    address public immutable voter; // only voter can modify balances (since it only happens on vote())
-    address public immutable _ve;
+    /// @notice A checkpoint for marking balance
+    struct Checkpoint {
+        uint timestamp;
+        uint balanceOf;
+    }
+
+    /// @notice A checkpoint for marking reward rate
+    struct RewardPerTokenCheckpoint {
+        uint timestamp;
+        uint rewardPerToken;
+    }
+
+    /// @notice A checkpoint for marking supply
+    struct SupplyCheckpoint {
+        uint timestamp;
+        uint supply;
+    }
+
+    address public voter; // only voter can modify balances (since it only happens on vote())
+    address public _ve;
 
     uint public constant DURATION = 7 days; // rewards are released over 7 days
     uint public constant PRECISION = 10 ** 18;
@@ -36,24 +55,6 @@ contract InternalBribe is IBribe {
     uint public totalSupply;
     mapping(uint => uint) public balanceOf;
 
-    /// @notice A checkpoint for marking balance
-    struct Checkpoint {
-        uint timestamp;
-        uint balanceOf;
-    }
-
-    /// @notice A checkpoint for marking reward rate
-    struct RewardPerTokenCheckpoint {
-        uint timestamp;
-        uint rewardPerToken;
-    }
-
-    /// @notice A checkpoint for marking supply
-    struct SupplyCheckpoint {
-        uint timestamp;
-        uint supply;
-    }
-
     /// @notice A record of balance checkpoints for each account, by index
     mapping (uint => mapping (uint => Checkpoint)) public checkpoints;
     /// @notice The number of checkpoints for each account
@@ -67,12 +68,22 @@ contract InternalBribe is IBribe {
     /// @notice The number of checkpoints for each token
     mapping (address => uint) public rewardPerTokenNumCheckpoints;
 
+    /// @notice simple re-entrancy check
+    bool internal _locked;
+
     event Deposit(address indexed from, uint tokenId, uint amount);
     event Withdraw(address indexed from, uint tokenId, uint amount);
     event NotifyReward(address indexed from, address indexed reward, uint amount);
     event ClaimRewards(address indexed from, address indexed reward, uint amount);
+    
+    modifier lock() {
+        require(!_locked,  "No re-entrancy");
+        _locked = true;
+        _;
+        _locked = false;
+    }
 
-    constructor(address _voter, address[] memory _allowedRewardTokens) {
+    function initialize(address _voter, address[] memory _allowedRewardTokens) public initializer {
         voter = _voter;
         _ve = IVoter(_voter)._ve();
 
@@ -82,15 +93,6 @@ contract InternalBribe is IBribe {
                 rewards.push(_allowedRewardTokens[i]);
             }
         }
-    }
-
-    /// @notice simple re-entrancy check
-    uint internal _unlocked = 1;
-    modifier lock() {
-        require(_unlocked == 1, "No re-entrancy");
-        _unlocked = 2;
-        _;
-        _unlocked = 1;
     }
 
     /**
