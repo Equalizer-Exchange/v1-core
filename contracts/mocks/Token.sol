@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.9;
 
-contract Token {
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+
+contract Token is Initializable {
 
     string public symbol;
     string public name;
     uint256 public decimals;
-    uint256 public totalSupply = 0;
+    uint256 public totalSupply;
 
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
@@ -24,12 +26,12 @@ contract Token {
     address public pendingAnyswapRouter;
     uint256 public pendingRouterDelay;
 
-    constructor(
+    function initialize(
         string memory _name,
         string memory _symbol,
         uint256 _decimals,
         address _anyswapRouter
-    ) {
+    ) public initializer {
         anyswapRouter = _anyswapRouter;
         name = _name;
         symbol = _symbol;
