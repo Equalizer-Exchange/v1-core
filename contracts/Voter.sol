@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.9;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./libraries/Math.sol";
 import "./interfaces/IBribe.sol";
 import "./interfaces/IBribeFactory.sol";
@@ -10,20 +11,21 @@ import "./interfaces/IERC20.sol";
 import "./interfaces/IMinter.sol";
 import "./interfaces/IPair.sol";
 import "./interfaces/IPairFactory.sol";
-import "./interfaces/IVoter.sol";
 import "./interfaces/IVotingEscrow.sol";
 
-contract Voter is IVoter {
-
-    address public immutable _ve; // the ve token that governs these contracts
-    address public immutable factory; // the PairFactory
-    address internal immutable base;
-    address public immutable gaugefactory;
-    address public immutable bribefactory;
-    uint internal constant DURATION = 7 days; // rewards are released over 7 days
+contract Voter is Initializable {
+    /// @dev rewards are released over 7 days
+    uint internal constant DURATION = 7 days;
+    /// @dev the ve token that governs these contracts
+    address public _ve;
+    address public factory; // the PairFactory
+    address internal base;
+    address public gaugefactory;
+    address public bribefactory;
     address public minter;
     address public governor; // should be set to an IGovernor
-    address public emergencyCouncil; // credibly neutral party similar to Curve's Emergency DAO
+    /// @dev credibly neutral party similar to Curve's Emergency DAO
+    address public emergencyCouncil;
 
     uint public totalWeight; // total voting weight
 
@@ -41,6 +43,13 @@ contract Voter is IVoter {
     mapping(address => bool) public isWhitelisted;
     mapping(address => bool) public isAlive;
 
+    /// @dev simple re-entrancy check
+    bool internal _locked;
+
+    uint internal index;
+    mapping(address => uint) internal supplyIndex;
+    mapping(address => uint) public claimable;
+
     event GaugeCreated(address indexed gauge, address creator, address internal_bribe, address indexed external_bribe, address indexed pool);
     event GaugeKilled(address indexed gauge);
     event GaugeRevived(address indexed gauge);
@@ -54,7 +63,19 @@ contract Voter is IVoter {
     event Detach(address indexed owner, address indexed gauge, uint tokenId);
     event Whitelisted(address indexed whitelister, address indexed token);
 
-    constructor(address __ve, address _factory, address  _gauges, address _bribes) {
+    modifier lock() {
+        require(!_locked, "No re-entrancy");
+        _locked = true;
+        _;
+        _locked = false;
+    }
+
+    function initialize(
+        address __ve, 
+        address _factory, 
+        address  _gauges, 
+        address _bribes
+    ) public initializer {
         _ve = __ve;
         factory = _factory;
         base = IVotingEscrow(__ve).token();
@@ -65,22 +86,13 @@ contract Voter is IVoter {
         emergencyCouncil = msg.sender;
     }
 
-    // simple re-entrancy check
-    uint internal _unlocked = 1;
-    modifier lock() {
-        require(_unlocked == 1, "No re-entrancy");
-        _unlocked = 2;
-        _;
-        _unlocked = 1;
-    }
-
     modifier onlyNewEpoch(uint _tokenId) {
         // ensure new epoch since last vote 
         require((block.timestamp / DURATION) * DURATION > lastVoted[_tokenId], "TOKEN_ALREADY_VOTED_THIS_EPOCH");
         _;
     }
 
-    function initialize(address[] memory _tokens, address _minter) external {
+    function initialSetup(address[] memory _tokens, address _minter) external {
         require(msg.sender == minter, "Not minter");
         for (uint i = 0; i < _tokens.length; i++) {
             _whitelist(_tokens[i]);
@@ -286,10 +298,6 @@ contract Voter is IVoter {
         return pools.length;
     }
 
-    uint internal index;
-    mapping(address => uint) internal supplyIndex;
-    mapping(address => uint) public claimable;
-
     function notifyRewardAmount(uint amount) external {
         _safeTransferFrom(base, msg.sender, address(this), amount); // transfer the distro in
         uint256 _ratio = amount * 1e18 / totalWeight; // 1e18 adjustment is removed during claim
@@ -398,7 +406,7 @@ contract Voter is IVoter {
     }
 
     function _safeTransferFrom(address token, address from, address to, uint256 value) internal {
-        require(token.code.length > 0);
+        require(token.code.length > 0, "Voter: invalid token");
         (bool success, bytes memory data) =
         token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, value));
         require(success && (data.length == 0 || abi.decode(data, (bool))));
