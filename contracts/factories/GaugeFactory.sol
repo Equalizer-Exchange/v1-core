@@ -2,7 +2,6 @@
 pragma solidity 0.8.9;
 
 import "../Gauge.sol";
-import "../interfaces/IPairFactory.sol";
 import "../interfaces/IGaugeFactory.sol";
 
 contract GaugeFactory is IGaugeFactory {
@@ -16,9 +15,17 @@ contract GaugeFactory is IGaugeFactory {
         bool isPair, 
         address[] memory _allowedRewards
     ) external returns (address) {
-        lastGauge = address(
-            new Gauge(_pool, _internalBribe, _externalBribe, _ve, msg.sender, isPair, _allowedRewards)
+        Gauge gauge = new Gauge();
+        gauge.initialize(
+            _pool, 
+            _internalBribe, 
+            _externalBribe, 
+            _ve, 
+            msg.sender, 
+            isPair, 
+            _allowedRewards
         );
+        lastGauge = address(gauge);
         return lastGauge;
     }
 }

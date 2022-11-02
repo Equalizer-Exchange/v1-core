@@ -3,7 +3,6 @@ pragma solidity 0.8.9;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./libraries/Math.sol";
-import "./interfaces/IBribe.sol";
 import "./interfaces/IERC20.sol";
 import "./interfaces/IVoter.sol";
 import "./interfaces/IVotingEscrow.sol";
@@ -75,7 +74,7 @@ contract InternalBribe is Initializable {
     event Withdraw(address indexed from, uint tokenId, uint amount);
     event NotifyReward(address indexed from, address indexed reward, uint amount);
     event ClaimRewards(address indexed from, address indexed reward, uint amount);
-    
+
     modifier lock() {
         require(!_locked,  "No re-entrancy");
         _locked = true;

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.9;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./libraries/Math.sol";
 import "./interfaces/IBribe.sol";
 import "./interfaces/IERC20.sol";
-import "./interfaces/IGauge.sol";
 import "./interfaces/IPair.sol";
 import "./interfaces/IVoter.sol";
 import "./interfaces/IVotingEscrow.sol";
@@ -13,13 +13,31 @@ import "./interfaces/IVotingEscrow.sol";
  * @notice Gauges are used to incentivize pools, they emit reward tokens over 7 days for staked LP tokens
  */
  
-contract Gauge is IGauge {
+contract Gauge is Initializable {
 
-    address public immutable stake; // the LP token that needs to be staked for rewards
-    address public immutable _ve; // the ve token used for gauges
-    address public immutable internal_bribe;
-    address public immutable external_bribe;
-    address public immutable voter;
+     /// @notice A checkpoint for marking balance
+    struct Checkpoint {
+        uint timestamp;
+        uint balanceOf;
+    }
+
+    /// @notice A checkpoint for marking reward rate
+    struct RewardPerTokenCheckpoint {
+        uint timestamp;
+        uint rewardPerToken;
+    }
+
+    /// @notice A checkpoint for marking supply
+    struct SupplyCheckpoint {
+        uint timestamp;
+        uint supply;
+    }
+
+    address public stake; // the LP token that needs to be staked for rewards
+    address public _ve; // the ve token used for gauges
+    address public internal_bribe;
+    address public external_bribe;
+    address public voter;
 
     uint public derivedSupply;
     mapping(address => uint) public derivedBalances;
@@ -47,24 +65,6 @@ contract Gauge is IGauge {
     address[] public rewards;
     mapping(address => bool) public isReward;
 
-    /// @notice A checkpoint for marking balance
-    struct Checkpoint {
-        uint timestamp;
-        uint balanceOf;
-    }
-
-    /// @notice A checkpoint for marking reward rate
-    struct RewardPerTokenCheckpoint {
-        uint timestamp;
-        uint rewardPerToken;
-    }
-
-    /// @notice A checkpoint for marking supply
-    struct SupplyCheckpoint {
-        uint timestamp;
-        uint supply;
-    }
-
     /// @notice A record of balance checkpoints for each account, by index
     mapping (address => mapping (uint => Checkpoint)) public checkpoints;
     /// @notice The number of checkpoints for each account
@@ -81,13 +81,31 @@ contract Gauge is IGauge {
     uint public fees0;
     uint public fees1;
 
+    /// @notice simple re-entrancy check
+    bool internal _locked;
+
     event Deposit(address indexed from, uint tokenId, uint amount);
     event Withdraw(address indexed from, uint tokenId, uint amount);
     event NotifyReward(address indexed from, address indexed reward, uint amount);
     event ClaimFees(address indexed from, uint claimed0, uint claimed1);
     event ClaimRewards(address indexed from, address indexed reward, uint amount);
 
-    constructor(address _stake, address _internal_bribe, address _external_bribe, address  __ve, address _voter, bool _forPair, address[] memory _allowedRewardTokens) {
+    modifier lock() {
+        require(!_locked,  "No re-entrancy");
+        _locked = true;
+        _;
+        _locked = false;
+    }
+
+    function initialize(
+        address _stake, 
+        address _internal_bribe, 
+        address _external_bribe, 
+        address  __ve, 
+        address _voter, 
+        bool _forPair, 
+        address[] memory _allowedRewardTokens
+    ) public initializer {
         stake = _stake;
         internal_bribe = _internal_bribe;
         external_bribe = _external_bribe;
@@ -101,15 +119,6 @@ contract Gauge is IGauge {
                 rewards.push(_allowedRewardTokens[i]);
             }
         }
-    }
-
-    // simple re-entrancy check
-    uint internal _unlocked = 1;
-    modifier lock() {
-        require(_unlocked == 1);
-        _unlocked = 2;
-        _;
-        _unlocked = 1;
     }
 
     function claimFees() external lock returns (uint claimed0, uint claimed1) {
@@ -285,17 +294,16 @@ contract Gauge is IGauge {
     function rewardsListLength() external view returns (uint) {
         return rewards.length;
     }
-
-    // returns the last time the reward was modified or periodFinish if the reward has ended
+    /// @dev returns the last time the reward was modified or periodFinish if the reward has ended
     function lastTimeRewardApplicable(address token) public view returns (uint) {
         return Math.min(block.timestamp, periodFinish[token]);
     }
 
     function getReward(address account, address[] memory tokens) external lock {
         require(msg.sender == account || msg.sender == voter);
-        _unlocked = 1;
+        _locked = false;
         IVoter(voter).distribute(address(this));
-        _unlocked = 2;
+        _locked = true;
 
         for (uint i = 0; i < tokens.length; i++) {
             (rewardPerTokenStored[tokens[i]], lastUpdateTime[tokens[i]]) = _updateRewardPerToken(tokens[i], type(uint).max, true);
@@ -317,7 +325,6 @@ contract Gauge is IGauge {
         _writeCheckpoint(account, derivedBalances[account]);
         _writeSupplyCheckpoint();
     }
-
 
     function rewardPerToken(address token) public view returns (uint) {
         if (derivedSupply == 0) {
@@ -424,7 +431,7 @@ contract Gauge is IGauge {
         return (reward, _startTimestamp);
     }
 
-    // earned is an estimation, it won't be exact till the supply > rewardPerToken calculations have run
+    /// @dev earned is an estimation, it won't be exact till the supply > rewardPerToken calculations have run
     function earned(address token, address account) public view returns (uint) {
         uint _startTimestamp = Math.max(lastEarn[token][account], rewardPerTokenCheckpoints[token][0].timestamp);
         if (numCheckpoints[account] == 0) {
