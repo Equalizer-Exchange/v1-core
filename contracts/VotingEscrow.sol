@@ -1,19 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.9;
 
-import {IERC721, IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
-import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
-import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {IERC721Upgradeable, IERC721MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
+import {IVotesUpgradeable} from "@openzeppelin/contracts-upgradeable/governance/utils/IVotesUpgradeable.sol";
+import {IERC721ReceiverUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
 import {Base64} from "./libraries/Base64.sol";
 import {IERC20} from "./interfaces/IERC20.sol";
 import {IVeArtProxy} from "./interfaces/IVeArtProxy.sol";
 
-/// @title Voting Escrow
-/// @notice veNFT implementation that escrows ERC-20 tokens in the form of an ERC-721 NFT
-/// @notice Votes have a weight depending on time, so that users are committed to the future of (whatever they are voting for)
-/// @dev Vote weight decays linearly over time. Lock time cannot be more than `MAXTIME` (26 weeks).
+/**
+ * @title Voting Escrow
+ * @notice veNFT implementation that escrows ERC-20 tokens in the form of an ERC-721 NFT
+ * Votes have a weight depending on time, so that users are committed to the future of (whatever they are voting for)
+ * @dev Vote weight decays linearly over time. Lock time cannot be more than `MAXTIME` (26 weeks).
+ */
 
-contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
+contract VotingEscrow is Initializable, IERC721Upgradeable, IERC721MetadataUpgradeable, IVotesUpgradeable {
     enum DepositType {
         DEPOSIT_FOR_TYPE,
         CREATE_LOCK_TYPE,
@@ -59,10 +62,10 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     event Supply(uint prevSupply, uint supply);
 
     /*//////////////////////////////////////////////////////////////
-                               CONSTRUCTOR
+                               Initialize
     //////////////////////////////////////////////////////////////*/
 
-    address public immutable token;
+    address public token;
     address public voter;
     address public team;
     address public artProxy;
@@ -84,9 +87,17 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     /// @dev Current count of token
     uint internal tokenId;
 
-    /// @notice Contract constructor
-    /// @param token_addr `EQUAL` token address
-    constructor(address token_addr, address art_proxy) {
+    /// @dev reentrancy guard
+    bool internal _locked;
+
+    /**
+     * @notice Contract Initialize
+     * @param token_addr `EQUAL` token address
+     */
+    function initialize(
+        address token_addr, 
+        address art_proxy
+    ) public initializer {
         token = token_addr;
         voter = msg.sender;
         team = msg.sender;
@@ -109,15 +120,11 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
                                 MODIFIERS
     //////////////////////////////////////////////////////////////*/
 
-    /// @dev reentrancy guard
-    uint8 internal constant _not_entered = 1;
-    uint8 internal constant _entered = 2;
-    uint8 internal _entered_state = 1;
-    modifier nonreentrant() {
-        require(_entered_state == _not_entered);
-        _entered_state = _entered;
+    modifier nonReentrant() {
+        require(!_locked, "No re-entrancy");
+        _locked = true;
         _;
-        _entered_state = _not_entered;
+        _locked = false;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -143,12 +150,12 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     /// @param _tokenId Token ID to fetch URI for.
     function tokenURI(uint _tokenId) external view returns (string memory) {
         require(idToOwner[_tokenId] != address(0), "Query for nonexistent token");
-        LockedBalance memory _locked = locked[_tokenId];
+        LockedBalance memory __locked = locked[_tokenId];
         return IVeArtProxy(artProxy)._tokenURI(
             _tokenId,
             _balanceOfNFT(_tokenId, block.timestamp),
-            _locked.end,
-            uint(int256(_locked.amount))
+            __locked.end,
+            uint(int256(__locked.amount))
         );
     }
 
@@ -371,8 +378,8 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
 
         if (_isContract(_to)) {
             // Throws if transfer destination is a contract which does not implement 'onERC721Received'
-            try IERC721Receiver(_to).onERC721Received(msg.sender, _from, _tokenId, _data) returns (bytes4 response) {
-                if (response != IERC721Receiver(_to).onERC721Received.selector) {
+            try IERC721ReceiverUpgradeable(_to).onERC721Received(msg.sender, _from, _tokenId, _data) returns (bytes4 response) {
+                if (response != IERC721ReceiverUpgradeable(_to).onERC721Received.selector) {
                     revert("ERC721: ERC721Receiver rejected tokens");
                 }
             } catch (bytes memory reason) {
@@ -706,30 +713,30 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         LockedBalance memory locked_balance,
         DepositType deposit_type
     ) internal {
-        LockedBalance memory _locked = locked_balance;
+        LockedBalance memory __locked = locked_balance;
         uint supply_before = supply;
 
         supply = supply_before + _value;
         LockedBalance memory old_locked;
-        (old_locked.amount, old_locked.end) = (_locked.amount, _locked.end);
+        (old_locked.amount, old_locked.end) = (__locked.amount, __locked.end);
         // Adding to existing lock, or if a lock is expired - creating a new one
-        _locked.amount += int128(int256(_value));
+        __locked.amount += int128(int256(_value));
         if (unlock_time != 0) {
-            _locked.end = unlock_time;
+            __locked.end = unlock_time;
         }
-        locked[_tokenId] = _locked;
+        locked[_tokenId] = __locked;
 
         // Possibilities:
         // Both old_locked.end could be current or expired (>/< block.timestamp)
         // value == 0 (extend lock) or value > 0 (add to lock or extend lock)
         // _locked.end > block.timestamp (always)
-        _checkpoint(_tokenId, old_locked, _locked);
+        _checkpoint(_tokenId, old_locked, __locked);
 
         address from = msg.sender;
         if (_value != 0 && deposit_type != DepositType.MERGE_TYPE) {
             assert(IERC20(token).transferFrom(from, address(this), _value));
         }
-        emit Deposit(from, _tokenId, _value, _locked.end, deposit_type, block.timestamp);
+        emit Deposit(from, _tokenId, _value, __locked.end, deposit_type, block.timestamp);
         emit Supply(supply_before, supply_before + _value);
     }
 
@@ -747,13 +754,13 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     ///      cannot extend their locktime and deposit for a brand new user
     /// @param _tokenId lock NFT
     /// @param _value Amount to add to user's lock
-    function deposit_for(uint _tokenId, uint _value) external nonreentrant {
-        LockedBalance memory _locked = locked[_tokenId];
+    function deposit_for(uint _tokenId, uint _value) external nonReentrant {
+        LockedBalance memory __locked = locked[_tokenId];
 
         require(_value > 0, "Invalid amount"); // dev: need non-zero value
-        require(_locked.amount > 0, "No existing lock found");
-        require(_locked.end > block.timestamp, "Cannot add to expired lock. Withdraw");
-        _deposit_for(_tokenId, _value, 0, _locked, DepositType.DEPOSIT_FOR_TYPE);
+        require(__locked.amount > 0, "No existing lock found");
+        require(__locked.end > block.timestamp, "Cannot add to expired lock. Withdraw");
+        _deposit_for(_tokenId, _value, 0, __locked, DepositType.DEPOSIT_FOR_TYPE);
     }
 
     /// @notice Deposit `_value` tokens for `_to` and lock for `_lock_duration`
@@ -778,7 +785,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     /// @notice Deposit `_value` tokens for `msg.sender` and lock for `_lock_duration`
     /// @param _value Amount to deposit
     /// @param _lock_duration Number of seconds to lock tokens for (rounded down to nearest week)
-    function create_lock(uint _value, uint _lock_duration) external nonreentrant returns (uint) {
+    function create_lock(uint _value, uint _lock_duration) external nonReentrant returns (uint) {
         return _create_lock(_value, _lock_duration, msg.sender);
     }
 
@@ -786,58 +793,58 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     /// @param _value Amount to deposit
     /// @param _lock_duration Number of seconds to lock tokens for (rounded down to nearest week)
     /// @param _to Address to deposit
-    function create_lock_for(uint _value, uint _lock_duration, address _to) external nonreentrant returns (uint) {
+    function create_lock_for(uint _value, uint _lock_duration, address _to) external nonReentrant returns (uint) {
         return _create_lock(_value, _lock_duration, _to);
     }
 
     /// @notice Deposit `_value` additional tokens for `_tokenId` without modifying the unlock time
     /// @param _value Amount of tokens to deposit and add to the lock
-    function increase_amount(uint _tokenId, uint _value) external nonreentrant {
+    function increase_amount(uint _tokenId, uint _value) external nonReentrant {
         assert(_isApprovedOrOwner(msg.sender, _tokenId));
 
-        LockedBalance memory _locked = locked[_tokenId];
+        LockedBalance memory __locked = locked[_tokenId];
 
         assert(_value > 0); // dev: need non-zero value
-        require(_locked.amount > 0, "No existing lock found");
-        require(_locked.end > block.timestamp, "Cannot add to expired lock. Withdraw");
+        require(__locked.amount > 0, "No existing lock found");
+        require(__locked.end > block.timestamp, "Cannot add to expired lock. Withdraw");
 
-        _deposit_for(_tokenId, _value, 0, _locked, DepositType.INCREASE_LOCK_AMOUNT);
+        _deposit_for(_tokenId, _value, 0, __locked, DepositType.INCREASE_LOCK_AMOUNT);
     }
 
     /// @notice Extend the unlock time for `_tokenId`
     /// @param _lock_duration New number of seconds until tokens unlock
-    function increase_unlock_time(uint _tokenId, uint _lock_duration) external nonreentrant {
+    function increase_unlock_time(uint _tokenId, uint _lock_duration) external nonReentrant {
         assert(_isApprovedOrOwner(msg.sender, _tokenId));
 
-        LockedBalance memory _locked = locked[_tokenId];
+        LockedBalance memory __locked = locked[_tokenId];
         uint unlock_time = (block.timestamp + _lock_duration) / WEEK * WEEK; // Locktime is rounded down to weeks
 
-        require(_locked.end > block.timestamp, "Lock expired");
-        require(_locked.amount > 0, "Nothing is locked");
-        require(unlock_time > _locked.end, "Can only increase lock duration");
+        require(__locked.end > block.timestamp, "Lock expired");
+        require(__locked.amount > 0, "Nothing is locked");
+        require(unlock_time > __locked.end, "Can only increase lock duration");
         require(unlock_time <= block.timestamp + MAXTIME, "Voting lock can be 26 weeks max");
 
-        _deposit_for(_tokenId, 0, unlock_time, _locked, DepositType.INCREASE_UNLOCK_TIME);
+        _deposit_for(_tokenId, 0, unlock_time, __locked, DepositType.INCREASE_UNLOCK_TIME);
     }
 
     /// @notice Withdraw all tokens for `_tokenId`
     /// @dev Only possible if the lock has expired
-    function withdraw(uint _tokenId) external nonreentrant {
+    function withdraw(uint _tokenId) external nonReentrant {
         assert(_isApprovedOrOwner(msg.sender, _tokenId));
         require(attachments[_tokenId] == 0 && !voted[_tokenId], "attached");
 
-        LockedBalance memory _locked = locked[_tokenId];
-        require(block.timestamp >= _locked.end, "The lock didn't expire");
-        uint value = uint(int256(_locked.amount));
+        LockedBalance memory __locked = locked[_tokenId];
+        require(block.timestamp >= __locked.end, "The lock didn't expire");
+        uint value = uint(int256(__locked.amount));
 
         locked[_tokenId] = LockedBalance(0,0);
         uint supply_before = supply;
         supply = supply_before - value;
 
         // old_locked can have either expired <= timestamp or zero end
-        // _locked has only 0 end
+        // __locked has only 0 end
         // Both can have >= 0 amount
-        _checkpoint(_tokenId, _locked, LockedBalance(0,0));
+        _checkpoint(_tokenId, __locked, LockedBalance(0,0));
 
         assert(IERC20(token).transfer(msg.sender, value));
 
