@@ -1,38 +1,38 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.9;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./libraries/Math.sol";
 import "./interfaces/IERC20.sol";
 import "./interfaces/IPairCallee.sol";
-import "./interfaces/IPair.sol";
 import "./interfaces/IPairFactory.sol";
 import "./PairFees.sol";
 
-contract Pair is IPair {
+contract Pair is Initializable {
 
     string public name;
     string public symbol;
     uint8 public constant decimals = 18;
 
-    // Used to denote stable or volatile pair, not immutable since construction happens in the initialize method for CREATE2 deterministic addresses
-    bool public immutable stable;
+    /// @notice Used to denote stable or volatile pair, not immutable since construction happens in the initialize method for CREATE2 deterministic addresses
+    bool public stable;
 
-    uint public totalSupply = 0;
+    uint256 public totalSupply;
 
     mapping(address => mapping (address => uint)) public allowance;
     mapping(address => uint) public balanceOf;
 
     bytes32 internal DOMAIN_SEPARATOR;
-    // keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
+    /// @dev keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
     bytes32 internal constant PERMIT_TYPEHASH = 0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
     mapping(address => uint) public nonces;
 
-    uint internal constant MINIMUM_LIQUIDITY = 10**3;
+    uint256 internal constant MINIMUM_LIQUIDITY = 10**3;
 
-    address public immutable token0;
-    address public immutable token1;
-    address public immutable fees;
-    address immutable factory;
+    address public token0;
+    address public token1;
+    address public fees;
+    address public factory;
 
     // Structure to capture time period obervations every 30 minutes, used for local oracles
     struct Observation {
@@ -46,8 +46,8 @@ contract Pair is IPair {
 
     Observation[] public observations;
 
-    uint internal immutable decimals0;
-    uint internal immutable decimals1;
+    uint internal decimals0;
+    uint internal decimals1;
 
     uint public reserve0;
     uint public reserve1;
@@ -58,8 +58,8 @@ contract Pair is IPair {
 
     // index0 and index1 are used to accumulate fees, this is split out from normal trades to keep the swap "clean"
     // this further allows LP holders to easily claim fees for tokens they have/staked
-    uint public index0 = 0;
-    uint public index1 = 0;
+    uint public index0;
+    uint public index1;
 
     // position assigned to each LP to track their current index0 & index1 vs the global position
     mapping(address => uint) public supplyIndex0;
@@ -68,6 +68,9 @@ contract Pair is IPair {
     // tracks the amount of unclaimed, but claimable tokens off of fees for token0 and token1
     mapping(address => uint) public claimable0;
     mapping(address => uint) public claimable1;
+
+    /// @dev simple re-entrancy check
+    bool internal _locked;
 
     event Fees(address indexed sender, uint amount0, uint amount1);
     event Mint(address indexed sender, uint amount0, uint amount1);
@@ -86,11 +89,21 @@ contract Pair is IPair {
     event Transfer(address indexed from, address indexed to, uint amount);
     event Approval(address indexed owner, address indexed spender, uint amount);
 
-    constructor() {
+    modifier lock() {
+        require(!_locked, "No re-entrancy");
+        _locked = true;
+        _;
+        _locked = false;
+    }
+
+    function initialize() public initializer {
         factory = msg.sender;
         (address _token0, address _token1, bool _stable) = IPairFactory(msg.sender).getInitializable();
         (token0, token1, stable) = (_token0, _token1, _stable);
-        fees = address(new PairFees(_token0, _token1));
+        PairFees pairFees = new PairFees();
+        pairFees.initialize(_token0, _token1);
+        fees = address(pairFees);
+
         if (_stable) {
             name = string(abi.encodePacked("StableV1 AMM - ", IERC20(_token0).symbol(), "/", IERC20(_token1).symbol()));
             symbol = string(abi.encodePacked("sAMM-", IERC20(_token0).symbol(), "/", IERC20(_token1).symbol()));
@@ -103,15 +116,6 @@ contract Pair is IPair {
         decimals1 = 10**IERC20(_token1).decimals();
 
         observations.push(Observation(block.timestamp, 0, 0));
-    }
-
-    // simple re-entrancy check
-    uint internal _unlocked = 1;
-    modifier lock() {
-        require(_unlocked == 1, "No re-entrancy");
-        _unlocked = 2;
-        _;
-        _unlocked = 1;
     }
 
     function observationLength() external view returns (uint) {
@@ -130,7 +134,7 @@ contract Pair is IPair {
         return (token0, token1);
     }
 
-    // claim accumulated but unclaimed fees (viewable via claimable0 and claimable1)
+    /// @dev claim accumulated but unclaimed fees (viewable via claimable0 and claimable1)
     function claimFees() external returns (uint claimed0, uint claimed1) {
         _updateFor(msg.sender);
 
@@ -147,7 +151,7 @@ contract Pair is IPair {
         }
     }
 
-    // Accrue fees on token0
+    /// @dev Accrue fees on token0
     function _update0(uint amount) internal {
         _safeTransfer(token0, fees, amount); // transfer the fees out to PairFees
         uint256 _ratio = amount * 1e18 / totalSupply; // 1e18 adjustment is removed during claim
@@ -157,7 +161,7 @@ contract Pair is IPair {
         emit Fees(msg.sender, amount, 0);
     }
 
-    // Accrue fees on token1
+    /// @dev Accrue fees on token1
     function _update1(uint amount) internal {
         _safeTransfer(token1, fees, amount);
         uint256 _ratio = amount * 1e18 / totalSupply;
@@ -167,8 +171,10 @@ contract Pair is IPair {
         emit Fees(msg.sender, 0, amount);
     }
 
-    // this function MUST be called on any balance changes, otherwise can be used to infinitely claim fees
-    // Fees are segregated from core funds, so fees can never put liquidity at risk
+    /**
+     * @notice This function must be called on any balance changes, otherwise can be used to infinitely claim fees
+     * Fees are segregated from core funds, so fees can never put liquidity at risk
+     */
     function _updateFor(address recipient) internal {
         uint _supplied = balanceOf[recipient]; // get LP balance of `recipient`
         if (_supplied > 0) {
@@ -200,7 +206,7 @@ contract Pair is IPair {
         _blockTimestampLast = blockTimestampLast;
     }
 
-    // update reserves and, on the first call per block, price accumulators
+    /// @dev update reserves and, on the first call per block, price accumulators
     function _update(uint balance0, uint balance1, uint _reserve0, uint _reserve1) internal {
         uint blockTimestamp = block.timestamp;
         uint timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
@@ -220,7 +226,7 @@ contract Pair is IPair {
         emit Sync(reserve0, reserve1);
     }
 
-    // produces the cumulative price using counterfactuals to save gas and avoid a call to sync.
+    /// @dev produces the cumulative price using counterfactuals to save gas and avoid a call to sync.
     function currentCumulativePrices() public view returns (uint reserve0Cumulative, uint reserve1Cumulative, uint blockTimestamp) {
         blockTimestamp = block.timestamp;
         reserve0Cumulative = reserve0CumulativeLast;
@@ -236,7 +242,7 @@ contract Pair is IPair {
         }
     }
 
-    // gives the current twap price measured from amountIn * tokenIn gives amountOut
+    /// @dev gives the current twap price measured from amountIn * tokenIn gives amountOut
     function current(address tokenIn, uint amountIn) external view returns (uint amountOut) {
         Observation memory _observation = lastObservation();
         (uint reserve0Cumulative, uint reserve1Cumulative,) = currentCumulativePrices();
@@ -250,7 +256,7 @@ contract Pair is IPair {
         amountOut = _getAmountOut(amountIn, tokenIn, _reserve0, _reserve1);
     }
 
-    // as per `current`, however allows user configured granularity, up to the full window size
+    /// @dev as per `current`, however allows user configured granularity, up to the full window size
     function quote(address tokenIn, uint amountIn, uint granularity) external view returns (uint amountOut) {
         uint [] memory _prices = sample(tokenIn, amountIn, granularity, 1);
         uint priceAverageCumulative;
@@ -260,7 +266,7 @@ contract Pair is IPair {
         return priceAverageCumulative / granularity;
     }
 
-    // returns a memory set of twap prices
+    /// @dev returns a memory set of twap prices
     function prices(address tokenIn, uint amountIn, uint points) external view returns (uint[] memory) {
         return sample(tokenIn, amountIn, points, 1);
     }
@@ -287,8 +293,10 @@ contract Pair is IPair {
         return _prices;
     }
 
-    // this low-level function should be called by addLiquidity functions in Router.sol, which performs important safety checks
-    // standard uniswap v2 implementation
+    /**
+     * @notice this low-level function should be called by addLiquidity functions in Router.sol, which performs important safety checks
+     * standard uniswap v2 implementation
+     */
     function mint(address to) external lock returns (uint liquidity) {
         (uint _reserve0, uint _reserve1) = (reserve0, reserve1);
         uint _balance0 = IERC20(token0).balanceOf(address(this));
@@ -310,8 +318,10 @@ contract Pair is IPair {
         emit Mint(msg.sender, _amount0, _amount1);
     }
 
-    // this low-level function should be called from a contract which performs important safety checks
-    // standard uniswap v2 implementation
+    /**
+     * @notice this low-level function should be called from a contract which performs important safety checks
+     * standard uniswap v2 implementation
+     */
     function burn(address to) external lock returns (uint amount0, uint amount1) {
         (uint _reserve0, uint _reserve1) = (reserve0, reserve1);
         (address _token0, address _token1) = (token0, token1);
@@ -333,7 +343,7 @@ contract Pair is IPair {
         emit Burn(msg.sender, amount0, amount1, to);
     }
 
-    // this low-level function should be called from a contract which performs important safety checks
+    /// @dev this low-level function should be called from a contract which performs important safety checks
     function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external lock {
         require(!IPairFactory(factory).isPaused());
         require(amount0Out > 0 || amount1Out > 0, "IOA"); // Pair: INSUFFICIENT_OUTPUT_AMOUNT
@@ -368,14 +378,14 @@ contract Pair is IPair {
         emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
     }
 
-    // force balances to match reserves
+    /// @dev force balances to match reserves
     function skim(address to) external lock {
         (address _token0, address _token1) = (token0, token1);
         _safeTransfer(_token0, to, IERC20(_token0).balanceOf(address(this)) - (reserve0));
         _safeTransfer(_token1, to, IERC20(_token1).balanceOf(address(this)) - (reserve1));
     }
 
-    // force reserves to match balances
+    /// @dev force reserves to match balances
     function sync() external lock {
         _update(IERC20(token0).balanceOf(address(this)), IERC20(token1).balanceOf(address(this)), reserve0, reserve1);
     }
@@ -522,9 +532,8 @@ contract Pair is IPair {
     }
 
     function _safeTransfer(address token,address to,uint256 value) internal {
-        require(token.code.length > 0);
-        (bool success, bytes memory data) =
-        token.call(abi.encodeWithSelector(IERC20.transfer.selector, to, value));
-        require(success && (data.length == 0 || abi.decode(data, (bool))));
+        require(token.code.length > 0, "Pair: invalid token");
+        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(IERC20.transfer.selector, to, value));
+        require(success && (data.length == 0 || abi.decode(data, (bool))), "Pair: transfer failed");
     }
 }
