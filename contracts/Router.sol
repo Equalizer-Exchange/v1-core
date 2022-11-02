@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.9;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./libraries/Math.sol";
 import "./interfaces/IERC20.sol";
 import "./interfaces/IPair.sol";
 import "./interfaces/IPairFactory.sol";
 import "./interfaces/IWETH.sol";
-import "./interfaces/IRouter.sol";
 
-contract Router is IRouter {
+contract Router is Initializable {
 
     struct Route {
         address from;
@@ -16,24 +16,25 @@ contract Router is IRouter {
         bool stable;
     }
 
-    address public immutable factory;
-    IWETH public immutable weth;
     uint internal constant MINIMUM_LIQUIDITY = 10**3;
-    bytes32 public immutable pairCodeHash;
+    address public factory;
+    IWETH public weth;
+    bytes32 public pairCodeHash;
 
     modifier ensure(uint deadline) {
         require(deadline >= block.timestamp, "Router: EXPIRED");
         _;
     }
 
-    constructor(address _factory, address _weth) {
+    function initialize(address _factory, address _weth) public initializer {
         factory = _factory;
         pairCodeHash = IPairFactory(_factory).pairCodeHash();
         weth = IWETH(_weth);
     }
 
+    /// @dev only accept ETH via fallback from the WETH contract
     receive() external payable {
-        assert(msg.sender == address(weth)); // only accept ETH via fallback from the WETH contract
+        assert(msg.sender == address(weth));
     }
 
     function sortTokens(address tokenA, address tokenB) public pure returns (address token0, address token1) {
@@ -42,7 +43,7 @@ contract Router is IRouter {
         require(token0 != address(0), "Router: ZERO_ADDRESS");
     }
 
-    // calculates the CREATE2 address for a pair without making any external calls
+    /// @dev calculates the CREATE2 address for a pair without making any external calls
     function pairFor(address tokenA, address tokenB, bool stable) public view returns (address pair) {
         (address token0, address token1) = sortTokens(tokenA, tokenB);
         pair = address(uint160(uint256(keccak256(abi.encodePacked(
@@ -53,21 +54,21 @@ contract Router is IRouter {
         )))));
     }
 
-    // given some amount of an asset and pair reserves, returns an equivalent amount of the other asset
+    /// @dev given some amount of an asset and pair reserves, returns an equivalent amount of the other asset
     function quoteLiquidity(uint amountA, uint reserveA, uint reserveB) internal pure returns (uint amountB) {
         require(amountA > 0, "Router: INSUFFICIENT_AMOUNT");
         require(reserveA > 0 && reserveB > 0, "Router: INSUFFICIENT_LIQUIDITY");
         amountB = amountA * reserveB / reserveA;
     }
 
-    // fetches and sorts the reserves for a pair
+    /// @dev fetches and sorts the reserves for a pair
     function getReserves(address tokenA, address tokenB, bool stable) public view returns (uint reserveA, uint reserveB) {
         (address token0,) = sortTokens(tokenA, tokenB);
         (uint reserve0, uint reserve1,) = IPair(pairFor(tokenA, tokenB, stable)).getReserves();
         (reserveA, reserveB) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
     }
 
-    // performs chained getAmountOut calculations on any number of pairs
+    /// @dev performs chained getAmountOut calculations on any number of pairs
     function getAmountOut(uint amountIn, address tokenIn, address tokenOut) external view returns (uint amount, bool stable) {
         address pair = pairFor(tokenIn, tokenOut, true);
         uint amountStable;
@@ -82,7 +83,7 @@ contract Router is IRouter {
         return amountStable > amountVolatile ? (amountStable, true) : (amountVolatile, false);
     }
 
-    // performs chained getAmountOut calculations on any number of pairs
+    /// @dev performs chained getAmountOut calculations on any number of pairs
     function getAmountsOut(uint amountIn, Route[] memory routes) public view returns (uint[] memory amounts) {
         require(routes.length >= 1, "Router: INVALID_PATH");
         amounts = new uint[](routes.length+1);
@@ -311,7 +312,7 @@ contract Router is IRouter {
     }
 
     // **** SWAP ****
-    // requires the initial amount to have already been sent to the first pair
+    /// @dev requires the initial amount to have already been sent to the first pair
     function _swap(uint[] memory amounts, Route[] memory routes, address _to) internal virtual {
         for (uint i = 0; i < routes.length; i++) {
             (address token0,) = sortTokens(routes[i].from, routes[i].to);
@@ -407,16 +408,14 @@ contract Router is IRouter {
     }
 
     function _safeTransfer(address token, address to, uint256 value) internal {
-        require(token.code.length > 0);
-        (bool success, bytes memory data) =
-        token.call(abi.encodeWithSelector(IERC20.transfer.selector, to, value));
+        require(token.code.length > 0, "Router: invalid token");
+        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(IERC20.transfer.selector, to, value));
         require(success && (data.length == 0 || abi.decode(data, (bool))), "Router: token transfer failed");
     }
 
     function _safeTransferFrom(address token, address from, address to, uint256 value) internal {
-        require(token.code.length > 0);
-        (bool success, bytes memory data) =
-        token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, value));
+        require(token.code.length > 0, "Router: invalid token");
+        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, value));
         require(success && (data.length == 0 || abi.decode(data, (bool))), "Router: token transfer failed");
     }
 }

@@ -5,7 +5,6 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./libraries/Math.sol";
 import "./interfaces/IERC20.sol";
 import "./interfaces/IVotingEscrow.sol";
-import "./interfaces/IRewardsDistributor.sol";
 
 /** 
 * @title Curve Fee Distribution modified for ve(3,3) emissions
