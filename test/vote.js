@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 
 describe("Vote Test Suite", () => {
     let owner, owner2, owner3;
@@ -11,50 +11,61 @@ describe("Vote Test Suite", () => {
         [owner, owner2, owner3] = await ethers.getSigners();
 
         const PairFactory = await ethers.getContractFactory("PairFactory");
-        pairFactory = await PairFactory.deploy();
+        pairFactory = await upgrades.deployProxy(PairFactory, []);
         await pairFactory.deployed();
-
+        console.log("PairFactory deployed to:", pairFactory.address);
+        
         const VeArtProxy = await ethers.getContractFactory("VeArtProxy");
-        const veArtProxy = await VeArtProxy.deploy();
+        const veArtProxy = await upgrades.deployProxy(VeArtProxy, []);
   
         const EqualFactory = await ethers.getContractFactory("Equal");
-        equal = await EqualFactory.deploy();
+        equal = await upgrades.deployProxy(EqualFactory, []);
 
         const VotingEscrow = await ethers.getContractFactory("VotingEscrow");
-        ve = await VotingEscrow.deploy(equal.address, veArtProxy.address);
+        ve = await upgrades.deployProxy(VotingEscrow, [
+            equal.address, veArtProxy.address
+        ]);
 
         const GaugeFactory = await ethers.getContractFactory("GaugeFactory");
-        const gauge_factory = await GaugeFactory.deploy();
+        const gauge_factory = await upgrades.deployProxy(GaugeFactory, []);
         await gauge_factory.deployed();
 
         const BribeFactory = await ethers.getContractFactory("BribeFactory");
-        const bribe_factory = await BribeFactory.deploy();
+        const bribe_factory = await upgrades.deployProxy(BribeFactory, []);
         await bribe_factory.deployed();
 
         const Voter = await ethers.getContractFactory("Voter");
-        voter = await Voter.deploy(
+        voter = await upgrades.deployProxy(Voter, [
             ve.address, 
             pairFactory.address, 
             gauge_factory.address, 
             bribe_factory.address
-        );
+        ]);
         await voter.deployed();
 
         const Router = await ethers.getContractFactory("Router");
-        router = await Router.deploy(pairFactory.address, owner.address);
+        router = await upgrades.deployProxy(Router, [
+            pairFactory.address, owner.address
+        ]);
         await router.deployed();
         
         // Test token contract
-        token = await ethers.getContractFactory("Token");
-        usdt = await token.deploy('USDT', 'USDT', 6, owner.address);
+        const Token = await ethers.getContractFactory("Token");
+        usdt = await upgrades.deployProxy(Token, [
+            'USDT', 'USDT', 6, owner.address
+        ]);
         await usdt.mint(owner.address, ethers.utils.parseUnits("1000000", 6));
         await usdt.mint(owner2.address, ethers.utils.parseUnits("1000000", 6));
         await usdt.mint(owner3.address, ethers.utils.parseUnits("1000000", 6));
-        mim = await token.deploy('MIM', 'MIM', 18, owner.address);
+        mim = await upgrades.deployProxy(Token, [
+            'MIM', 'MIM', 18, owner.address
+        ]);
         await mim.mint(owner.address, ethers.utils.parseUnits("1000000", 18));
         await mim.mint(owner2.address, ethers.utils.parseUnits("1000000", 18));
         await mim.mint(owner3.address, ethers.utils.parseUnits("1000000", 18));
-        dai = await token.deploy('DAI', 'DAI', 18, owner.address);
+        dai = await upgrades.deployProxy(Token, [
+            'DAI', 'DAI', 18, owner.address
+        ]);
         await dai.mint(owner.address, ethers.utils.parseUnits("1000000", 18));
         await dai.mint(owner2.address, ethers.utils.parseUnits("1000000", 18));
         await dai.mint(owner3.address, ethers.utils.parseUnits("1000000", 18));

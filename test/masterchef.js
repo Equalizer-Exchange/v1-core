@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 
 describe("MasterChef", function () {
   let owner;
@@ -16,22 +16,22 @@ describe("MasterChef", function () {
     [owner] = await ethers.getSigners();
 
     const Equal = await ethers.getContractFactory("Equal");
-    equal = await Equal.deploy();
+    equal = await upgrades.deployProxy(Equal, []);
     await equal.deployed();
 
     const VeArtProxy = await ethers.getContractFactory("VeArtProxy");
-    const veArtProxy = await VeArtProxy.deploy();
+    const veArtProxy = await upgrades.deployProxy(VeArtProxy, []);
 
     const VotingEscrow = await ethers.getContractFactory("VotingEscrow");
-    ve = await VotingEscrow.deploy(equal.address, veArtProxy.address);
+    ve = await upgrades.deployProxy(VotingEscrow, [equal.address, veArtProxy.address]);
 
     const MasterChef = await ethers.getContractFactory("MasterChef");
-    masterChef = await MasterChef.deploy(
+    masterChef = await upgrades.deployProxy(MasterChef, [
       ve.address,
       equalPerSecond,
       startTime,
       endTime
-    );
+    ]);
     await masterChef.deployed();
     
     console.log("MasterChef deployed at ", masterChef.address);

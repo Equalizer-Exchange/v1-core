@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 const { MerkleTree } = require('merkletreejs');
 
 describe("Merkle claim for airdrop", () => {
@@ -12,13 +12,13 @@ describe("Merkle claim for airdrop", () => {
     before(async() => {
         [owner, user1, user2, user3] = await ethers.getSigners();
         const Equal = await ethers.getContractFactory("Equal");
-        equal = await Equal.deploy();
+        equal = await upgrades.deployProxy(Equal, []);
 
         const VeArtProxy = await ethers.getContractFactory("VeArtProxy");
-        const veArtProxy = await VeArtProxy.deploy();
+        const veArtProxy = await upgrades.deployProxy(VeArtProxy, []);
   
         const VotingEscrow = await ethers.getContractFactory("VotingEscrow");
-        ve = await VotingEscrow.deploy(equal.address, veArtProxy.address);
+        ve = await upgrades.deployProxy(VotingEscrow, [equal.address, veArtProxy.address]);
 
         whitelisted = [
             { address: user1.address, level: 1},
@@ -37,7 +37,9 @@ describe("Merkle claim for airdrop", () => {
         console.log("MerkleRoot; ", merkleRoot);
 
         const MerkleClaim = await ethers.getContractFactory("MerkleClaim");
-        merkleClaim = await MerkleClaim.deploy(ve.address, merkleRoot, claimDuration);
+        merkleClaim = await upgrades.deployProxy(MerkleClaim, [
+            ve.address, merkleRoot, claimDuration
+        ]);
         await merkleClaim.deployed();
 
         console.log("MerkleClaim deployed at ", merkleClaim.address);

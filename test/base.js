@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 
 describe("Core", function () {
 
@@ -18,25 +18,35 @@ describe("Core", function () {
 
   before(async () => {
     [owner, owner2, owner3] = await ethers.getSigners();
-    token = await ethers.getContractFactory("Token");
+    const Token = await ethers.getContractFactory("Token");
 
-    usdt = await token.deploy('USDT', 'USDT', 6, owner.address);
+    usdt = await upgrades.deployProxy(Token, [
+      'USDT', 'USDT', 6, owner.address
+    ]);
     await usdt.mint(owner.address, ethers.BigNumber.from("1000000000000000000"));
     await usdt.mint(owner2.address, ethers.BigNumber.from("1000000000000000000"));
     await usdt.mint(owner3.address, ethers.BigNumber.from("1000000000000000000"));
-    mim = await token.deploy('MIM', 'MIM', 18, owner.address);
+    mim = await upgrades.deployProxy(Token, [
+      'MIM', 'MIM', 18, owner.address
+    ]);
     await mim.mint(owner.address, ethers.BigNumber.from("1000000000000000000000000000000"));
     await mim.mint(owner2.address, ethers.BigNumber.from("1000000000000000000000000000000"));
     await mim.mint(owner3.address, ethers.BigNumber.from("1000000000000000000000000000000"));
-    dai = await token.deploy('DAI', 'DAI', 18, owner.address);
+    dai = await upgrades.deployProxy(Token, [
+      'DAI', 'DAI', 18, owner.address
+    ]);
     await dai.mint(owner.address, ethers.BigNumber.from("1000000000000000000000000000000"));
     await dai.mint(owner2.address, ethers.BigNumber.from("1000000000000000000000000000000"));
     await dai.mint(owner3.address, ethers.BigNumber.from("1000000000000000000000000000000"));
-    ve_underlying = await token.deploy('VE', 'VE', 18, owner.address);
+    ve_underlying = await upgrades.deployProxy(Token, [
+      'VE', 'VE', 18, owner.address
+    ]);
     await ve_underlying.mint(owner.address, ethers.BigNumber.from("20000000000000000000000000"));
     await ve_underlying.mint(owner2.address, ethers.BigNumber.from("10000000000000000000000000"));
     await ve_underlying.mint(owner3.address, ethers.BigNumber.from("10000000000000000000000000"));
-    late_reward = await token.deploy('LR', 'LR', 18, owner.address);
+    late_reward = await upgrades.deployProxy(Token, [
+      'LR', 'LR', 18, owner.address
+    ]);
     await late_reward.mint(owner.address, ethers.BigNumber.from("20000000000000000000000000"));
 
     await usdt.deployed();
@@ -47,10 +57,12 @@ describe("Core", function () {
   describe("VotingEscrow", () => {
     before(async() => {
       const VeArtProxy = await ethers.getContractFactory("VeArtProxy");
-      const veArtProxy = await VeArtProxy.deploy();
+      const veArtProxy = await upgrades.deployProxy(VeArtProxy, []);
   
       const VotingEscrow = await ethers.getContractFactory("VotingEscrow");
-      ve = await VotingEscrow.deploy(ve_underlying.address, veArtProxy.address);
+      ve = await upgrades.deployProxy(VotingEscrow, [
+        ve_underlying.address, veArtProxy.address
+      ]);
     });
 
     it("create lock", async function () {
@@ -112,11 +124,13 @@ describe("Core", function () {
   describe("PairFactory & Router", () => {
     before(async () => {
       const PairFactory = await ethers.getContractFactory("PairFactory");
-      factory = await PairFactory.deploy();
+      factory = await upgrades.deployProxy(PairFactory, []);
       await factory.deployed();
 
       const Router = await ethers.getContractFactory("Router");
-      router = await Router.deploy(factory.address, owner.address);
+      router = await upgrades.deployProxy(Router, [
+        factory.address, owner.address
+      ]);
       await router.deployed();
     });
 
@@ -317,20 +331,20 @@ describe("Core", function () {
   describe("Voter", () => {
     before(async() => {
       const GaugeFactory = await ethers.getContractFactory("GaugeFactory");
-      const gauge_factory = await GaugeFactory.deploy();
+      const gauge_factory = await upgrades.deployProxy(GaugeFactory, []);
       await gauge_factory.deployed();
 
       const BribeFactory = await ethers.getContractFactory("BribeFactory");
-      const bribe_factory = await BribeFactory.deploy();
+      const bribe_factory = await upgrades.deployProxy(BribeFactory, []);
       await bribe_factory.deployed();
 
       const Voter = await ethers.getContractFactory("Voter");
-      voter = await Voter.deploy(
+      voter = await upgrades.deployProxy(Voter, [
         ve.address, 
         factory.address, 
         gauge_factory.address, 
         bribe_factory.address
-      );
+      ]);
       await voter.deployed();
 
       await ve.setVoter(voter.address);
@@ -406,22 +420,24 @@ describe("Core", function () {
   describe("Minter", () => {
     before(async() => {
       const RewardsDistributor = await ethers.getContractFactory("RewardsDistributor");
-      rewardsDistributor = await RewardsDistributor.deploy(ve.address);
+      rewardsDistributor = await upgrades.deployProxy(RewardsDistributor, [ve.address]);
       await rewardsDistributor.deployed();
 
       const Minter = await ethers.getContractFactory("Minter");
-      minter = await Minter.deploy(voter.address, ve.address, rewardsDistributor.address);
+      minter = await upgrades.deployProxy(Minter, [
+        voter.address, ve.address, rewardsDistributor.address
+      ]);
       await minter.deployed();
       console.log("Minter deployed to ", minter.address);
       await rewardsDistributor.setDepositor(minter.address);
-      await voter.initialize(
+      await voter.initialSetup(
         [usdt.address, mim.address, dai.address, ve_underlying.address],
         minter.address
       );
     });
 
     it("initialize", async function () {
-      await minter.initialize([owner2.address], [1000], 1000);
+      await minter.initialSetup([owner2.address], [1000], 1000);
     });
   });
 });
