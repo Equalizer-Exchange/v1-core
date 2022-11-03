@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "./interfaces/IERC20.sol";
 import "./interfaces/IEqual.sol";
 import "./interfaces/IVotingEscrow.sol";
-
-import "./libraries/Ownable.sol";
 
 // The biggest change made is using per second instead of per block for rewards
 // This is due to Fantoms extremely inconsistent block times
@@ -14,7 +13,7 @@ import "./libraries/Ownable.sol";
 // will be transferred to a governance smart contract once c is sufficiently
 // distributed and the community can show to govern itself.
 
-contract MasterChef is Ownable {
+contract MasterChef is OwnableUpgradeable {
     // Info of each user.
     struct UserInfo {
         uint256 amount;     // How many LP tokens the user has provided.
@@ -41,11 +40,11 @@ contract MasterChef is Ownable {
         uint256 accEQUALPerShare; // Accumulated EQUALs per share, times 1e12. See below.
     }
 
-    IEqual public immutable equal;
-    IVotingEscrow public immutable ve;
+    IEqual public equal;
+    IVotingEscrow public ve;
 
     // EQUAL tokens created per second.
-    uint256 public immutable equalPerSecond;
+    uint256 public equalPerSecond;
  
     uint256 public constant MAX_ALLOC_POINT = 4000;
     uint256 public constant LOCK = 86400 * 7 * 26;
@@ -55,23 +54,24 @@ contract MasterChef is Ownable {
     // Info of each user that stakes LP tokens.
     mapping (uint256 => mapping (address => UserInfo)) public userInfo;
     // Total allocation points. Must be the sum of all allocation points in all pools.
-    uint256 public totalAllocPoint = 0;
+    uint256 public totalAllocPoint;
     // The block time when EQUAL mining starts.
-    uint256 public immutable startTime;
+    uint256 public startTime;
     // The block time when EQUAL mining stops.
-    uint256 public immutable endTime;
+    uint256 public endTime;
 
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
     event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
     event Harvest(address indexed user, uint256 totalReward, uint256 tokenId);
 
-    constructor(
+    function initialize(
         address _ve,
         uint256 _equalPerSecond,
         uint256 _startTime,
         uint256 _endTime
-    ) {
+    ) public initializer {
+        __Ownable_init();
         equal = IEqual(IVotingEscrow(_ve).token());
         ve = IVotingEscrow(_ve);
         equalPerSecond = _equalPerSecond;

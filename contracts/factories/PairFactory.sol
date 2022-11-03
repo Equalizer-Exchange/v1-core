@@ -93,7 +93,9 @@ contract PairFactory is Initializable {
         require(getPair[token0][token1][stable] == address(0), "PE"); // Pair: PAIR_EXISTS - single check is sufficient
         bytes32 salt = keccak256(abi.encodePacked(token0, token1, stable)); // notice salt includes stable as well, 3 parameters
         (_temp0, _temp1, _temp) = (token0, token1, stable);
-        pair = address(new Pair{salt:salt}());
+        Pair newPair = new Pair{salt:salt}();
+        newPair.initialize();
+        pair = address(newPair);
         getPair[token0][token1][stable] = pair;
         getPair[token1][token0][stable] = pair; // populate mapping in the reverse direction
         allPairs.push(pair);

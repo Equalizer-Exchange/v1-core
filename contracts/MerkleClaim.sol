@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.9;
 
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "./libraries/MerkleProof.sol";
-import "./libraries/Ownable.sol";
 import "./interfaces/IEqual.sol";
 import "./interfaces/IVotingEscrow.sol";
 
 /// @title MerkleClaim
 /// @notice Claims EQUAL for members of a merkle tree
 /// @author Modified from Merkle Airdrop Starter (https://github.com/Anish-Agnihotri/merkle-airdrop-starter/blob/master/contracts/src/MerkleClaimERC20.sol)
-contract MerkleClaim is Ownable {
+contract MerkleClaim is OwnableUpgradeable {
     /// @notice max lock period 26 weeeks
     uint256 public constant LOCK = 86400 * 7 * 26;
     uint256 public constant MAX_AMOUNT = 500_000 * 10 ** 18;
@@ -17,11 +17,11 @@ contract MerkleClaim is Ownable {
     uint256 public duration;
     uint256 public startTime;
     /// ============ Immutable storage ============
-    IVotingEscrow public immutable ve;
+    IVotingEscrow public ve;
     /// @notice EQUAL token to claim
-    IEqual public immutable equal;
+    IEqual public equal;
     /// @notice ERC20-claimee inclusion root
-    bytes32 public immutable merkleRoot;
+    bytes32 public merkleRoot;
 
     /// @notice Mapping from boost level to veEQUAL token amount
     mapping(uint => uint) public boostAmount;
@@ -33,11 +33,14 @@ contract MerkleClaim is Ownable {
 
     /// ============ Constructor ============
 
-    /// @notice Creates a new MerkleClaim contract
+    /// @notice Initialize new MerkleClaim contract
     /// @param _ve address
     /// @param _merkleRoot of claimees
     /// @param _duration duration for airdrop
-    constructor(address _ve, bytes32 _merkleRoot, uint256 _duration) {
+    function initialize(
+        address _ve, bytes32 _merkleRoot, uint256 _duration
+    ) public initializer {
+        __Ownable_init();
         ve = IVotingEscrow(_ve);
         equal = IEqual(IVotingEscrow(_ve).token());
         merkleRoot = _merkleRoot;
