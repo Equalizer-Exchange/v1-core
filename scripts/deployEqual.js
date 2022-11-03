@@ -1,8 +1,8 @@
-const hre = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 
 async function main() {
-    const Equal = await hre.ethers.getContractFactory("Equal");
-    const equal = await Equal.deploy();
+    const Equal = await ethers.getContractFactory("Equal");
+    const equal = await upgrades.deployProxy(Equal, []);
     await equal.deployed();
 
     console.log("Equal deployed to:", equal.address);

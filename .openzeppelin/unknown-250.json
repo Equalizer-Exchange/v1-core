@@ -9,6 +9,21 @@
       "address": "0xbC74B39DAE67287437406A1C37F89D948Cc415D0",
       "txHash": "0x2ce4a0e6d2ec6da6a1dada121dc788188fd1fe47e843e3ad92fbb8f6d644b16c",
       "kind": "transparent"
+    },
+    {
+      "address": "0xc6366EFD0AF1d09171fe0EBF32c7943BB310832a",
+      "txHash": "0xcf4240e57427cec9eb15f4c2f03acd15cefe45d53d5d36f7471b6010823eb921",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xbae81eBB5E897C7143c82725e1c2039C2D7e2a78",
+      "txHash": "0x647f9cc3af7b902bb4bb9d48c2c64f698597806ab4c1f1e63daa98036687aa3d",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xaEC6D3e4d319cdC6553f0379E4FF9001d022bea9",
+      "txHash": "0xbd04356bc41136366614d15695ccb700878108eb97e64a3db55ab91d5e49a5fe",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -128,6 +143,294 @@
           "t_uint256": {
             "label": "uint256",
             "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "9ed16830fb51096d8eeea286777de96a39a3212976d441e7b8d1e771d854a68e": {
+      "address": "0xc9ab1Ab21358F4Fc36cbbbe27f3b3eAd423EC33B",
+      "txHash": "0xdf4ca4491329938697f80c984556f9bce7d8a81f2f783c8424f970a3a90d01a9",
+      "layout": {
+        "solcVersion": "0.8.9",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "isPaused",
+            "offset": 2,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "PairFactory",
+            "src": "contracts/factories/PairFactory.sol:9"
+          },
+          {
+            "label": "pauser",
+            "offset": 3,
+            "slot": "0",
+            "type": "t_address",
+            "contract": "PairFactory",
+            "src": "contracts/factories/PairFactory.sol:10"
+          },
+          {
+            "label": "pendingPauser",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "PairFactory",
+            "src": "contracts/factories/PairFactory.sol:11"
+          },
+          {
+            "label": "stableFee",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256",
+            "contract": "PairFactory",
+            "src": "contracts/factories/PairFactory.sol:13"
+          },
+          {
+            "label": "volatileFee",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256",
+            "contract": "PairFactory",
+            "src": "contracts/factories/PairFactory.sol:14"
+          },
+          {
+            "label": "feeManager",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_address",
+            "contract": "PairFactory",
+            "src": "contracts/factories/PairFactory.sol:16"
+          },
+          {
+            "label": "pendingFeeManager",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_address",
+            "contract": "PairFactory",
+            "src": "contracts/factories/PairFactory.sol:17"
+          },
+          {
+            "label": "getPair",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_mapping(t_bool,t_address)))",
+            "contract": "PairFactory",
+            "src": "contracts/factories/PairFactory.sol:19"
+          },
+          {
+            "label": "allPairs",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_array(t_address)dyn_storage",
+            "contract": "PairFactory",
+            "src": "contracts/factories/PairFactory.sol:20"
+          },
+          {
+            "label": "isPair",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "PairFactory",
+            "src": "contracts/factories/PairFactory.sol:21"
+          },
+          {
+            "label": "_temp0",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_address",
+            "contract": "PairFactory",
+            "src": "contracts/factories/PairFactory.sol:23"
+          },
+          {
+            "label": "_temp1",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_address",
+            "contract": "PairFactory",
+            "src": "contracts/factories/PairFactory.sol:24"
+          },
+          {
+            "label": "_temp",
+            "offset": 20,
+            "slot": "10",
+            "type": "t_bool",
+            "contract": "PairFactory",
+            "src": "contracts/factories/PairFactory.sol:25"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_mapping(t_bool,t_address)))": {
+            "label": "mapping(address => mapping(address => mapping(bool => address)))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_bool,t_address))": {
+            "label": "mapping(address => mapping(bool => address))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bool,t_address)": {
+            "label": "mapping(bool => address)",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "2f334916b50b08ec9b5a8cd00b42ab6652ee420732529dfa003a8f790140a6dd": {
+      "address": "0x421283742281AeCE0D2dFe55e5356EB1e554aE06",
+      "txHash": "0x96b16e36a9ae8b277e713e125c136b515d6551c18787e51f240f04d779a76529",
+      "layout": {
+        "solcVersion": "0.8.9",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "factory",
+            "offset": 2,
+            "slot": "0",
+            "type": "t_address",
+            "contract": "Router",
+            "src": "contracts/Router.sol:19"
+          },
+          {
+            "label": "weth",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(IWETH)23669",
+            "contract": "Router",
+            "src": "contracts/Router.sol:20"
+          },
+          {
+            "label": "pairCodeHash",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_bytes32",
+            "contract": "Router",
+            "src": "contracts/Router.sol:21"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IWETH)23669": {
+            "label": "contract IWETH",
+            "numberOfBytes": "20"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "f3402646526a1185a1f5596dfe630c8adf866c994972600dda4637b7ad262f08": {
+      "address": "0xaE067C4eBC8ACbdC4411Ea10CDd2d51d9d04157C",
+      "txHash": "0x461b8c56c9ed5e2b5ea0b9d54805150935ca20f48a78368a05d622066bd2cc37",
+      "layout": {
+        "solcVersion": "0.8.9",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "router",
+            "offset": 2,
+            "slot": "0",
+            "type": "t_contract(IRouter)23432",
+            "contract": "EqualizerLibrary",
+            "src": "contracts/EqualizerLibrary.sol:9"
+          }
+        ],
+        "types": {
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IRouter)23432": {
+            "label": "contract IRouter",
+            "numberOfBytes": "20"
           },
           "t_uint8": {
             "label": "uint8",

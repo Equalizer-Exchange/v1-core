@@ -1,11 +1,11 @@
-const hre = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 
 async function main() {
-    const WFTM =  "0x07B9c47452C41e8E00f98aC4c075F5c443281d2A";
-    const factoryAddr = "0xBD0c75cFf5e679FD3893Dc590b7F77f858328cCD";
+    const WFTM =  "0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83";
+    const factoryAddr = "0xc6366EFD0AF1d09171fe0EBF32c7943BB310832a";
 
-    const Router = await hre.ethers.getContractFactory("Router");
-    const router = await Router.deploy(factoryAddr, WFTM);
+    const Router = await ethers.getContractFactory("Router");
+    const router = await upgrades.deployProxy(Router, [factoryAddr, WFTM]);
 
     await router.deployed();
 

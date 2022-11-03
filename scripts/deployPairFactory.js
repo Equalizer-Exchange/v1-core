@@ -1,8 +1,8 @@
-const hre = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 
 async function main() {
-    const PairFactory = await hre.ethers.getContractFactory("PairFactory");
-    const pairFactory = await PairFactory.deploy();
+    const PairFactory = await ethers.getContractFactory("PairFactory");
+    const pairFactory = await upgrades.deployProxy(PairFactory, []);
 
     await pairFactory.deployed();
 
