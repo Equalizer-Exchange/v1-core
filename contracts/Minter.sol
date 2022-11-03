@@ -141,6 +141,17 @@ contract Minter is Initializable {
         return (circulating_supply() * TAIL_EMISSION) / PRECISION;
     }
 
+    // calculate inflation and adjust ve balances accordingly
+    function calculate_growth(uint _minted) public view returns (uint) {
+        uint _veTotal = _ve.totalSupply();
+        uint _equalTotal = _equal.totalSupply();
+        return
+            (((((_minted * _veTotal) / _equalTotal) * _veTotal) / _equalTotal) *
+                _veTotal) /
+            _equalTotal /
+            2;
+    }
+
     /// @notice update period can only be called once per cycle (1 week)
     function update_period() external returns (uint) {
         uint _period = active_period;
