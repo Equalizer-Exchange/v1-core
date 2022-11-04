@@ -1,30 +1,30 @@
-const hre = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 
 async function main() {
-    const votingEscrowAddr = "0x416ad61485bfA706f6E45fB3C4a996F3B1c4F942";
-    const pairFactoryAddr = "0xBD0c75cFf5e679FD3893Dc590b7F77f858328cCD";
+    const votingEscrowAddr = "0x99a5075d29047c6Df029163F40338f288731642F";
+    const pairFactoryAddr = "0xc6366EFD0AF1d09171fe0EBF32c7943BB310832a";
 
-    const GaugeFactory = await hre.ethers.getContractFactory("GaugeFactory");
-    const gaugeFactory = await GaugeFactory.deploy();
+    const GaugeFactory = await ethers.getContractFactory("GaugeFactory");
+    const gaugeFactory = await upgrades.deployProxy(GaugeFactory, []);
 
     await gaugeFactory.deployed();
 
     console.log("GaugeFactory deployed to:", gaugeFactory.address);
 
-    const BribeFactory = await hre.ethers.getContractFactory("BribeFactory");
-    const bribeFactory = await BribeFactory.deploy();
+    const BribeFactory = await ethers.getContractFactory("BribeFactory");
+    const bribeFactory = await upgrades.deployProxy(BribeFactory, []);
 
     await bribeFactory.deployed();
 
     console.log("BribeFactory deployed to:", bribeFactory.address);  
 
-    const Voter = await hre.ethers.getContractFactory("Voter");
-    const voter = await Voter.deploy(
+    const Voter = await ethers.getContractFactory("Voter");
+    const voter = await upgrades.deployProxy(Voter, [
         votingEscrowAddr,
         pairFactoryAddr,
         gaugeFactory.address,
         bribeFactory.address
-    );
+    ]);
 
     await voter.deployed();
 

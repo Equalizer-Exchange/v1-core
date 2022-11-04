@@ -3,11 +3,11 @@
 //
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
-const hre = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 
 async function main() {
-  const VeArtProxy = await hre.ethers.getContractFactory("VeArtProxy");
-  const veArtProxy = await VeArtProxy.deploy();
+  const VeArtProxy = await ethers.getContractFactory("VeArtProxy");
+  const veArtProxy = await upgrades.deployProxy(VeArtProxy, []);
   await veArtProxy.deployed();
 
   console.log("VeArtProxy deployed to:", veArtProxy.address);

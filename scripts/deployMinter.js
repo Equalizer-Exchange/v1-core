@@ -3,19 +3,19 @@
 //
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
-const hre = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 
 async function main() {
-  const votingEscrowAddr = "0x416ad61485bfA706f6E45fB3C4a996F3B1c4F942";
-  const voterAddr = "0x866c1Af8266D5740563b3618267fA0e1e158FfD0";
-  const reDisAddr = "0xFDb551237D8d9A605aC07be05e9dDD6500Bc3aaF";
+  const voterAddr = "0x0b034D57a3f21fafa35FB5002e81f48923DD4ffB";
+  const votingEscrowAddr = "0x99a5075d29047c6Df029163F40338f288731642F";
+  const reDisAddr = "0x07378e3B1fC43F7A37630C739a2f29F5b2442e60";
 
-  const Minter = await hre.ethers.getContractFactory("Minter");
-  const minter = await Minter.deploy(
+  const Minter = await ethers.getContractFactory("Minter");
+  const minter = await upgrades.deployProxy(Minter, [
     voterAddr,
     votingEscrowAddr,
     reDisAddr
-  );
+  ]);
 
   await minter.deployed();
 

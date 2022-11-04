@@ -1,9 +1,9 @@
-const hre = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 
 async function main() {
-    const votingEscrowAddr = "0x416ad61485bfA706f6E45fB3C4a996F3B1c4F942";
-    const RewardsDistributor = await hre.ethers.getContractFactory("RewardsDistributor");
-    const rewardsDistributor = await RewardsDistributor.deploy(votingEscrowAddr);
+    const votingEscrowAddr = "0x99a5075d29047c6Df029163F40338f288731642F";
+    const RewardsDistributor = await ethers.getContractFactory("RewardsDistributor");
+    const rewardsDistributor = await upgrades.deployProxy(RewardsDistributor, [votingEscrowAddr]);
 
     await rewardsDistributor.deployed();
 

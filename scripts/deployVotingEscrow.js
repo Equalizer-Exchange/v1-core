@@ -1,11 +1,13 @@
-const hre = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 
 async function main() {
-    const equalAddr = "0x433b6C328a15490568b47277D02c66D4Eda14b29";
-    const veArtProxyAddr = "0x7dD5dF9b35b1296C0F4B11b320a7DE25f12bf8Da";
+    const equalAddr = "0xbC74B39DAE67287437406A1C37F89D948Cc415D0";
+    const veArtProxyAddr = "0x777928F0B5F9066a14f7317D57e660F1d754CAd8";
 
-    const VotingEscrow = await hre.ethers.getContractFactory("VotingEscrow");
-    const votingEscrow = await VotingEscrow.deploy(equalAddr, veArtProxyAddr);
+    const VotingEscrow = await ethers.getContractFactory("VotingEscrow");
+    const votingEscrow = await upgrades.deployProxy(VotingEscrow, [
+        equalAddr, veArtProxyAddr
+    ]);
 
     await votingEscrow.deployed();
 
