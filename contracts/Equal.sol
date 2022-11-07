@@ -8,7 +8,7 @@ contract Equal is OwnableUpgradeable {
     string public constant name = "Equalizer";
     string public constant symbol = "EQUAL";
     uint8 public constant decimals = 18;
-    uint256 private totalSupply;
+    uint256 public totalSupply;
 
     mapping(address => uint) public balanceOf;
     mapping(address => mapping(address => uint)) public allowance;
