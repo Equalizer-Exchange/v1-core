@@ -131,8 +131,8 @@ contract VotingEscrow is Initializable, IERC721Upgradeable, IERC721MetadataUpgra
                              METADATA STORAGE
     //////////////////////////////////////////////////////////////*/
 
-    string constant public name = "veNFT";
-    string constant public symbol = "veNFT";
+    string constant public name = "veEQUAL";
+    string constant public symbol = "veEQUAL";
     string constant public version = "1.0.0";
     uint8 constant public decimals = 18;
 
