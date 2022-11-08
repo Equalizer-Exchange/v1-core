@@ -1,42 +1,45 @@
-# Advanced Sample Hardhat Project
+# Equalizer Exchange
 
-This project demonstrates an advanced Hardhat use case, integrating other tools commonly used alongside Hardhat in the ecosystem.
+This repo contains the contracts for Equalizer Exchange, an AMM on Fantom Opera inspired by Solidly.
 
-The project comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts. It also comes with a variety of other tools, preconfigured to work with the project code.
+## Testing
 
-Try running some of the following tasks:
+This repo uses Hardhat framework for compilation, testing and deployment.
 
-```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
-npx hardhat test
-npx hardhat node
-npx hardhat help
-REPORT_GAS=true npx hardhat test
-npx hardhat coverage
-npx hardhat run scripts/deploy.js
-node scripts/deploy.js
-npx eslint '**/*.js'
-npx eslint '**/*.js' --fix
-npx prettier '**/*.{json,sol,md}' --check
-npx prettier '**/*.{json,sol,md}' --write
-npx solhint 'contracts/**/*.sol'
-npx solhint 'contracts/**/*.sol' --fix
+- Create an enviroment file named `.env` (copy .env.example) and fill the next enviroment variables
+
+```
+# The private key of a wallet address that will be used for deployment into the testnet or mainnet
+PRIVATE_KEY=
+
+# Env variable for gas report
+REPORT_GAS=
+
 ```
 
-# Etherscan verification
+- Hardhat Setup
 
-To try out Etherscan verification, you first need to deploy a contract to an Ethereum network that's supported by Etherscan, such as Ropsten.
-
-In this project, copy the .env.example file to a file named .env, and then edit it to fill in the details. Enter your Etherscan API key, your Ropsten node URL (eg from Alchemy), and the private key of the account which will send the deployment transaction. With a valid .env file in place, first deploy your contract:
-
-```shell
-hardhat run --network ropsten scripts/deploy.js
+```ml
+npm i
+npm run compile
+npm run test
 ```
 
-Then, copy the deployment address and paste it in to replace `DEPLOYED_CONTRACT_ADDRESS` in this command:
+## Contracts
 
-```shell
-npx hardhat verify --network ropsten DEPLOYED_CONTRACT_ADDRESS "Hello, Hardhat!"
-```
+### Mainnet
+| Name               | Address                                                                                                                               |
+| :----------------- | :------------------------------------------------------------------------------------------------------------------------------------ |
+| Equal              | [0x3Fd3A0c85B70754eFc07aC9Ac0cbBDCe664865A6](https://ftmscan.com/address/0x3fd3a0c85b70754efc07ac9ac0cbbdce664865a6#code) |
+| PairFactory        | [0xc6366EFD0AF1d09171fe0EBF32c7943BB310832a](https://ftmscan.com/address/0xc6366efd0af1d09171fe0ebf32c7943bb310832a#code) |
+| BribeFactory       | [0x5D4589BbA42dF0c53BBcB7EC59160dE64B9d4308](https://ftmscan.com/address/0x5d4589bba42df0c53bbcb7ec59160de64b9d4308#code) |
+| GaugeFactory       | [0xc8be3d680e31187a94b47119c5b2b095ce2be578](https://ftmscan.com/address/0xc8be3d680e31187a94b47119c5b2b095ce2be578#code) |
+| Voter              | [0x4bebEB8188aEF8287f9a7d1E4f01d76cBE060d5b](https://ftmscan.com/address/0x4bebEB8188aEF8287f9a7d1E4f01d76cBE060d5b#code) |
+| VotingEscrow       | [0x8313f3551c4d3984ffbadfb42f780d0c8763ce94](https://ftmscan.com/address/0x8313f3551c4d3984ffbadfb42f780d0c8763ce94#code) |
+| VeArtProxy         | [0x777928f0b5f9066a14f7317d57e660f1d754cad8](https://ftmscan.com/address/0x777928f0b5f9066a14f7317d57e660f1d754cad8#code) |
+| RewardsDistributor | [0x4325d07222186F438c83Ac1Ed579ecAC2a7d1426](https://ftmscan.com/address/0x4325d07222186F438c83Ac1Ed579ecAC2a7d1426#code) |
+| Minter             | [0x85e7f59248d1c52bd635f27518333f75fb80c72d](https://ftmscan.com/address/0x85e7f59248d1c52bd635f27518333f75fb80c72d#code) |
+| Router             | [0xbae81ebb5e897c7143c82725e1c2039c2d7e2a78](https://ftmscan.com/address/0xbae81ebb5e897c7143c82725e1c2039c2d7e2a78#code) |
+| EqualizerLibrary   | [0xaec6d3e4d319cdc6553f0379e4ff9001d022bea9](https://ftmscan.com/address/0xaec6d3e4d319cdc6553f0379e4ff9001d022bea9#code) |
+| MerkleClaim        | [0x6ef2fa893319db4a06e864d1dee17a90fcc34130](https://ftmscan.com/address/0x6ef2fa893319db4a06e864d1dee17a90fcc34130#code) |
+| MasterChef         | [0x93b97347722b8a0d21b0dddf79ae1c85c05041f8](https://ftmscan.com/address/0x93b97347722b8a0d21b0dddf79ae1c85c05041f8#code) |
