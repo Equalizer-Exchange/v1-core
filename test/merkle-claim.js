@@ -46,7 +46,7 @@ describe("Merkle claim for airdrop", () => {
     });
 
     it("set startTime", async() => {
-        const startTime = Math.floor(Date.now() / 1000); // only for test purpose
+        const startTime = 1668384000; // Monday, Nov 14 2022 0:00:00
         await merkleClaim.setStartTime(startTime);
 
         expect(await merkleClaim.startTime()).to.equal(startTime);

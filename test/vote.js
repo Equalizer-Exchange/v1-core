@@ -3,7 +3,7 @@ const { ethers, upgrades } = require("hardhat");
 
 describe("Vote Test Suite", () => {
     let owner, owner2, owner3;
-    let pairFactory, router, voter, ve, equal;
+    let pairFactory, router, voter, ve, equal, minter;
     let usdt, mim, dai;
     let pair, pair2, gauge, gauge2;
     
@@ -26,6 +26,10 @@ describe("Vote Test Suite", () => {
             equal.address, veArtProxy.address
         ]);
 
+        const RewardsDistributor = await ethers.getContractFactory("RewardsDistributor");
+        const rewardsDistributor = await upgrades.deployProxy(RewardsDistributor, [ve.address]);
+        await rewardsDistributor.deployed();
+
         const GaugeFactory = await ethers.getContractFactory("GaugeFactory");
         const gauge_factory = await upgrades.deployProxy(GaugeFactory, []);
         await gauge_factory.deployed();
@@ -42,6 +46,13 @@ describe("Vote Test Suite", () => {
             bribe_factory.address
         ]);
         await voter.deployed();
+
+        const Minter = await ethers.getContractFactory("Minter");
+        minter = await upgrades.deployProxy(Minter, [
+            voter.address, ve.address, rewardsDistributor.address
+        ]);
+        await minter.deployed();
+        console.log("Minter deployed to ", minter.address);
 
         const Router = await ethers.getContractFactory("Router");
         router = await upgrades.deployProxy(Router, [
@@ -184,6 +195,34 @@ describe("Vote Test Suite", () => {
             await ve.connect(owner2).approve(voter.address, tokenId);
             await voter.connect(owner2).vote(tokenId, [pair.address], [10000]);
             console.log(await ve.balanceOfNFT(tokenId));
+        });
+    });
+
+    describe("Whitelist", async () => {
+        it("initial setup", async () => {
+            const tokensToWhitelist = [
+                "0x00a35FD824c717879BF370E70AC6868b95870Dfb"
+                ,"0x02a2b736F9150d36C0919F3aCEE8BA2A92FBBb40"
+                ,"0x04068DA6C83AFCFA0e13ba15A6696662335D5B75"
+            ];
+            await voter.initialSetup(tokensToWhitelist, minter.address);
+
+            expect(await voter.isWhitelisted(tokensToWhitelist[0])).to.equal(true);
+            expect(await voter.isWhitelisted(tokensToWhitelist[1])).to.equal(true);
+            expect(await voter.isWhitelisted(tokensToWhitelist[2])).to.equal(true);
+            expect(await voter.isWhitelisted(owner2.address)).to.equal(false);
+        });
+
+        it("whitelist an individual token", async () => {
+            const token1 = "0x14d6111dbfD64CEb9676a494BF86AA9f7DD54acC";
+            await expect(
+                voter.whitelist(token1)
+            ).to.emit(voter, "Whitelisted").withArgs(owner.address, token1);
+
+            const token2 = "0x00a35FD824c717879BF370E70AC6868b95870Dfb";
+            await expect(
+                voter.whitelist(token2)
+            ).to.be.revertedWith("Already whitelisted");
         });
     });
 });
