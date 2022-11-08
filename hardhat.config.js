@@ -7,7 +7,6 @@ require("hardhat-gas-reporter");
 require("solidity-coverage");
 
 const {
-  FTMSCAN_API_KEY, 
   PRIVATE_KEY,
   REPORT_GAS
 } = process.env;
@@ -58,8 +57,5 @@ module.exports = {
   gasReporter: {
     enabled: REPORT_GAS !== undefined,
     currency: "USD",
-  },
-  etherscan: {
-    apiKey: FTMSCAN_API_KEY,
-  },
+  }
 };

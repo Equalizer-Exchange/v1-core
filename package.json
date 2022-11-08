@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "compile": "hardhat compile"
+    "compile": "hardhat compile",
+    "test": "hardhat test"
   },
   "keywords": [],
   "author": "",
@@ -13,7 +14,6 @@
     "@nomiclabs/hardhat-ethers": "2.0.6",
     "@nomiclabs/hardhat-etherscan": "3.1.2",
     "@nomiclabs/hardhat-waffle": "2.0.3",
-    "@openzeppelin/contracts": "4.6.0",
     "@openzeppelin/contracts-upgradeable": "^4.7.3",
     "@openzeppelin/hardhat-upgrades": "^1.21.0",
     "axios": "^1.1.3",
