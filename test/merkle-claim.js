@@ -62,7 +62,7 @@ describe("Merkle claim for airdrop", () => {
 
     it("user1 claim veEQUAL token", async() => {
 
-        await ethers.provider.send('evm_increaseTime', [24 * 3600]); // fast-forward 24 hrs
+        await ethers.provider.send('evm_increaseTime', [7 * 24 * 3600]); // fast-forward 7 days
         await ethers.provider.send('evm_mine');
         
         const boostAmount = await merkleClaim.boostAmount(whitelisted[0].level);
