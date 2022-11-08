@@ -6,9 +6,9 @@
 const { ethers, upgrades } = require("hardhat");
 
 async function main() {
-  const voterAddr = "0x0b034D57a3f21fafa35FB5002e81f48923DD4ffB";
-  const votingEscrowAddr = "0x99a5075d29047c6Df029163F40338f288731642F";
-  const reDisAddr = "0x07378e3B1fC43F7A37630C739a2f29F5b2442e60";
+  const voterAddr = "0x4bebEB8188aEF8287f9a7d1E4f01d76cBE060d5b";
+  const votingEscrowAddr = "0x8313f3551C4D3984FfbaDFb42f780D0c8763Ce94";
+  const reDisAddr = "0x4325d07222186F438c83Ac1Ed579ecAC2a7d1426";
 
   const Minter = await ethers.getContractFactory("Minter");
   const minter = await upgrades.deployProxy(Minter, [

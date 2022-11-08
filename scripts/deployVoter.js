@@ -1,7 +1,7 @@
 const { ethers, upgrades } = require("hardhat");
 
 async function main() {
-    const votingEscrowAddr = "0x99a5075d29047c6Df029163F40338f288731642F";
+    const votingEscrowAddr = "0x8313f3551C4D3984FfbaDFb42f780D0c8763Ce94";
     const pairFactoryAddr = "0xc6366EFD0AF1d09171fe0EBF32c7943BB310832a";
 
     const GaugeFactory = await ethers.getContractFactory("GaugeFactory");

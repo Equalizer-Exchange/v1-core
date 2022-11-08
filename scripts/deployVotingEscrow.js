@@ -1,12 +1,17 @@
 const { ethers, upgrades } = require("hardhat");
 
 async function main() {
-    const equalAddr = "0xbC74B39DAE67287437406A1C37F89D948Cc415D0";
-    const veArtProxyAddr = "0x777928F0B5F9066a14f7317D57e660F1d754CAd8";
+    const equalAddr = "0x3Fd3A0c85B70754eFc07aC9Ac0cbBDCe664865A6";
+
+    const VeArtProxy = await ethers.getContractFactory("VeArtProxy");
+    const veArtProxy = await upgrades.deployProxy(VeArtProxy, []);
+    await veArtProxy.deployed();
+
+    console.log("VeArtProxy deployed to:", veArtProxy.address);
 
     const VotingEscrow = await ethers.getContractFactory("VotingEscrow");
     const votingEscrow = await upgrades.deployProxy(VotingEscrow, [
-        equalAddr, veArtProxyAddr
+        equalAddr, veArtProxy.address
     ]);
 
     await votingEscrow.deployed();
