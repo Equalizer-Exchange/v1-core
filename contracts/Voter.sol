@@ -202,11 +202,6 @@ contract Voter is Initializable {
         _vote(tokenId, _poolVote, _weights);
     }
 
-    function whitelist(address _token) public {
-        require(msg.sender == governor, "Not governor");
-        _whitelist(_token);
-    }
-
     function _whitelist(address _token) internal {
         require(!isWhitelisted[_token], "Already whitelisted");
         isWhitelisted[_token] = true;
@@ -410,5 +405,19 @@ contract Voter is Initializable {
         (bool success, bytes memory data) =
         token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, value));
         require(success && (data.length == 0 || abi.decode(data, (bool))));
+    }
+
+    function whitelist(address[] calldata _tokens) external {
+        require(msg.sender == governor, "Not governor");
+        for (uint i = 0; i < _tokens.length; i++) {
+            _whitelist(_tokens[i]);
+        } 
+    }
+
+    function removeFromWhitelist(address[] calldata _tokens) external {
+        require(msg.sender == governor, "Not governor");
+        for (uint i = 0; i < _tokens.length; i++) {
+            delete isWhitelisted[_tokens[i]];
+        }
     }
 }

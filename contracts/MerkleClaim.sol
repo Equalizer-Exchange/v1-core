@@ -80,6 +80,11 @@ contract MerkleClaim is OwnableUpgradeable {
         duration = _duration;
     }
 
+    /// @notice set merkle root
+    function setMerkleRoot(bytes32 _merkleRoot) external onlyOwner {
+        merkleRoot = _merkleRoot;
+    }
+    
     /// @notice Allows claiming tokens if address is part of merkle tree
     /// @param _to address of claimee
     /// @param _boostLevel depending on number 1-3 is how many veEQUAL the receive 
