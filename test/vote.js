@@ -213,16 +213,26 @@ describe("Vote Test Suite", () => {
             expect(await voter.isWhitelisted(owner2.address)).to.equal(false);
         });
 
-        it("whitelist an individual token", async () => {
+        it("whitelist additional tokens", async () => {
             const token1 = "0x14d6111dbfD64CEb9676a494BF86AA9f7DD54acC";
             await expect(
-                voter.whitelist(token1)
+                voter.whitelist([token1])
             ).to.emit(voter, "Whitelisted").withArgs(owner.address, token1);
 
             const token2 = "0x00a35FD824c717879BF370E70AC6868b95870Dfb";
             await expect(
-                voter.whitelist(token2)
+                voter.whitelist([token2])
             ).to.be.revertedWith("Already whitelisted");
+        });
+
+        it("remove from whitelist", async () => {
+            const tokensToRemove = [
+                "0x00a35FD824c717879BF370E70AC6868b95870Dfb"
+                ,"0x02a2b736F9150d36C0919F3aCEE8BA2A92FBBb40",
+                "0x488177c42bD58104618cA771A674Ba7e4D5A2FBB"
+            ];
+            await voter.removeFromWhitelist(tokensToRemove);
+            expect(await voter.isWhitelisted(tokensToRemove[0])).to.equal(false);
         });
     });
 });
