@@ -29,6 +29,12 @@ async function main() {
     await voter.deployed();
 
     console.log("Voter deployed to:", voter.address);
+
+    // upgrade
+    /* const voterAddr = "0x4bebEB8188aEF8287f9a7d1E4f01d76cBE060d5b";
+    const VoterV2 = await ethers.getContractFactory("Voter");
+    const voter = await upgrades.upgradeProxy(voterAddr, VoterV2);
+    console.log("Voter upgraded"); */
 }
 
 main().catch((error) => {
