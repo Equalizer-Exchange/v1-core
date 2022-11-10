@@ -35,6 +35,11 @@ async function main() {
     const VoterV2 = await ethers.getContractFactory("Voter");
     const voter = await upgrades.upgradeProxy(voterAddr, VoterV2);
     console.log("Voter upgraded"); */
+
+    // check whitelist
+    /* const voterAddr = "0x4bebEB8188aEF8287f9a7d1E4f01d76cBE060d5b";
+    const voter = await ethers.getContractAt("Voter", voterAddr);
+    console.log(await voter.isWhitelisted("0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83")); */
 }
 
 main().catch((error) => {
