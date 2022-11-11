@@ -14,7 +14,7 @@ async function main() {
 
     console.log("MerkleClaim deployed to:", merkleClaim.address);
 
-    const startTime = 1668384000; // Monday, Nov 14 2022 0:00:00
+    const startTime = 1668988800; // Monday, Nov 21 2022 0:00:00
     await merkleClaim.setStartTime(startTime);
 }
 

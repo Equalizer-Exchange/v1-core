@@ -114,17 +114,24 @@ describe("MasterChef", function () {
   });
 
   describe("MasterChef", () => {
-    it("should return right startTime & endTime", async() => {
+    it("should return right startTime & endTime", async () => {
       expect(await masterChef.startTime()).to.equal(startTime);
       expect(await masterChef.endTime()).to.equal(endTime);
     });
 
-    it("add lp pool", async() => {
+    it("add lp pool", async () => {
       await masterChef.add(25, pair.address);
       await masterChef.add(75, pair2.address);
 
       expect(await masterChef.totalAllocPoint()).to.equal(100);
       console.log(await pair.balanceOf(owner.address));
+    });
+
+    it("update start & end time", async () => {
+      const startTime = 1669248000;
+      const duration = 28; // days
+      await masterChef.setTime(startTime, duration);
+      expect(await masterChef.endTime()).to.equal(startTime + duration * 24 * 3600);
     });
   });
 });
