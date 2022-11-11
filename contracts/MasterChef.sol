@@ -272,4 +272,13 @@ contract MasterChef is OwnableUpgradeable {
             equal.transfer(_to, _amount);
         }
     }
+
+    /// @notice set start & end time for airdrop
+    /// @param _startTime start time (in seconds)
+    /// @param _duration staking duration (in days) 
+    function setTime(uint256 _startTime, uint256 _duration) external onlyOwner {
+        require(_startTime > block.timestamp, "Invalid start time");
+        startTime = _startTime;
+        endTime = _startTime + _duration * 1 days;
+    }
 }
