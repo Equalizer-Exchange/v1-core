@@ -51,6 +51,11 @@ contract Minter is Initializable {
         uint circulating_emission
     );
 
+    event Withdrawal(
+        address indexed recipient,
+        uint amount
+    );
+    
     /**
      * @dev initialize
      * @param __voter the voting & distribution system
@@ -186,5 +191,15 @@ contract Minter is Initializable {
             emit Mint(msg.sender, weekly, circulating_supply(), circulating_emission());
         }
         return _period;
+    }
+
+    /// @notice withdraw remaining EQUAL tokens
+    function withdrawEQUAL(address _recipient) external {
+        require(msg.sender == team, "not team");
+        uint256 remaining = _equal.balanceOf(address(this));
+        require(remaining > 0, "No remaining tokens");
+        _equal.transfer(_recipient, remaining);
+        // Emit withdrawal event
+        emit Withdrawal(_recipient, remaining);
     }
 }
