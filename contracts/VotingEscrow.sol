@@ -1377,4 +1377,21 @@ contract VotingEscrow is Initializable, IERC721Upgradeable, IERC721MetadataUpgra
         );
         return _delegate(signatory, delegatee);
     }
+
+    /**
+     * @notice Deposit `_value` additional tokens for `_tokenId` without modifying the unlock time.
+     * this function is called by only team wallet
+     * @param _value Amount of tokens to deposit and add to the lock
+     */
+    function increase_amount_for(uint _tokenId, uint _value) external nonReentrant {
+        require(msg.sender == team, "not team");
+
+        LockedBalance memory __locked = locked[_tokenId];
+
+        assert(_value > 0); // dev: need non-zero value
+        require(__locked.amount > 0, "No existing lock found");
+        require(__locked.end > block.timestamp, "Cannot add to expired lock. Withdraw");
+
+        _deposit_for(_tokenId, _value, 0, __locked, DepositType.INCREASE_LOCK_AMOUNT);
+    }
 }
