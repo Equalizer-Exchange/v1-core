@@ -4,7 +4,7 @@ async function main() {
     const FOUR_WEEKS_IN_SECS = 28 * 24 * 60 * 60;
     const startTime = 1669248000; // Thursday, Nov 24, 2022 0:00:00
     const endTime = startTime + FOUR_WEEKS_IN_SECS;
-    const equalPerSecond = 0.2583498677 * 10 ^ 18;
+    const equalPerSecond = ethers.utils.parseUnits("0.2583498677", 18);
 
     const votingEscrowAddr = "0x8313f3551C4D3984FfbaDFb42f780D0c8763Ce94";
     const MasterChef = await ethers.getContractFactory("MasterChef");

@@ -2965,7 +2965,7 @@
             "label": "equal",
             "offset": 0,
             "slot": "101",
-            "type": "t_contract(IEqual)23254",
+            "type": "t_contract(IEqual)23362",
             "contract": "MasterChef",
             "src": "contracts/MasterChef.sol:43"
           },
@@ -2973,7 +2973,7 @@
             "label": "ve",
             "offset": 0,
             "slot": "102",
-            "type": "t_contract(IVotingEscrow)23740",
+            "type": "t_contract(IVotingEscrow)23848",
             "contract": "MasterChef",
             "src": "contracts/MasterChef.sol:44"
           },
@@ -3047,15 +3047,15 @@
             "label": "bool",
             "numberOfBytes": "1"
           },
-          "t_contract(IERC20)23196": {
+          "t_contract(IERC20)23304": {
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IEqual)23254": {
+          "t_contract(IEqual)23362": {
             "label": "contract IEqual",
             "numberOfBytes": "20"
           },
-          "t_contract(IVotingEscrow)23740": {
+          "t_contract(IVotingEscrow)23848": {
             "label": "contract IVotingEscrow",
             "numberOfBytes": "20"
           },
@@ -3072,7 +3072,7 @@
             "members": [
               {
                 "label": "lpToken",
-                "type": "t_contract(IERC20)23196",
+                "type": "t_contract(IERC20)23304",
                 "offset": 0,
                 "slot": "0"
               },
@@ -3830,6 +3830,224 @@
           "t_mapping(t_address,t_uint256)": {
             "label": "mapping(address => uint256)",
             "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "c2429341c5a3925f27902de6045daa54f566aa399ffc7aa550e3c559ef2a6fa1": {
+      "address": "0x33d480D7326BaF735363778521c109C1144Fb41c",
+      "txHash": "0xd6a94cfe5969de294ab6d24b2bd8b156583d66caa405509ea31be39031149115",
+      "layout": {
+        "solcVersion": "0.8.9",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "equal",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_contract(IEqual)23375",
+            "contract": "MasterChef",
+            "src": "contracts/MasterChef.sol:43"
+          },
+          {
+            "label": "ve",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_contract(IVotingEscrow)23861",
+            "contract": "MasterChef",
+            "src": "contracts/MasterChef.sol:44"
+          },
+          {
+            "label": "equalPerSecond",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_uint256",
+            "contract": "MasterChef",
+            "src": "contracts/MasterChef.sol:47"
+          },
+          {
+            "label": "poolInfo",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_array(t_struct(PoolInfo)8035_storage)dyn_storage",
+            "contract": "MasterChef",
+            "src": "contracts/MasterChef.sol:53"
+          },
+          {
+            "label": "userInfo",
+            "offset": 0,
+            "slot": "105",
+            "type": "t_mapping(t_uint256,t_mapping(t_address,t_struct(UserInfo)8025_storage))",
+            "contract": "MasterChef",
+            "src": "contracts/MasterChef.sol:55"
+          },
+          {
+            "label": "totalAllocPoint",
+            "offset": 0,
+            "slot": "106",
+            "type": "t_uint256",
+            "contract": "MasterChef",
+            "src": "contracts/MasterChef.sol:57"
+          },
+          {
+            "label": "startTime",
+            "offset": 0,
+            "slot": "107",
+            "type": "t_uint256",
+            "contract": "MasterChef",
+            "src": "contracts/MasterChef.sol:59"
+          },
+          {
+            "label": "endTime",
+            "offset": 0,
+            "slot": "108",
+            "type": "t_uint256",
+            "contract": "MasterChef",
+            "src": "contracts/MasterChef.sol:61"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_struct(PoolInfo)8035_storage)dyn_storage": {
+            "label": "struct MasterChef.PoolInfo[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)23317": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IEqual)23375": {
+            "label": "contract IEqual",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IVotingEscrow)23861": {
+            "label": "contract IVotingEscrow",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_struct(UserInfo)8025_storage)": {
+            "label": "mapping(address => struct MasterChef.UserInfo)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_address,t_struct(UserInfo)8025_storage))": {
+            "label": "mapping(uint256 => mapping(address => struct MasterChef.UserInfo))",
+            "numberOfBytes": "32"
+          },
+          "t_struct(PoolInfo)8035_storage": {
+            "label": "struct MasterChef.PoolInfo",
+            "members": [
+              {
+                "label": "lpToken",
+                "type": "t_contract(IERC20)23317",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "allocPoint",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "lastRewardTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "accEQUALPerShare",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_struct(UserInfo)8025_storage": {
+            "label": "struct MasterChef.UserInfo",
+            "members": [
+              {
+                "label": "amount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "rewardDebt",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "pendingReward",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
           },
           "t_uint256": {
             "label": "uint256",
