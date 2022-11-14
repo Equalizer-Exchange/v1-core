@@ -281,4 +281,9 @@ contract MasterChef is OwnableUpgradeable {
         startTime = _startTime;
         endTime = _startTime + _duration * 1 days;
     }
+
+    /// @notice set equalPerSecond value
+    function setEqualPerSecond(uint256 _equalPerSecond) external onlyOwner {
+        equalPerSecond = _equalPerSecond;
+    }
 }

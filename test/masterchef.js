@@ -11,7 +11,7 @@ describe("MasterChef", function () {
   const startTime = 1668643200; // Thursday, Nov 17, 2022 0:00:00;
   const endTime = startTime + FOUR_WEEKS_IN_SECS;
 
-  const equalPerSecond = 0.2583498677 * 10 ^ 18;
+  const equalPerSecond = ethers.utils.parseUnits("0.2583498677", 18);
 
   before(async() => {
     // Contracts are deployed using the first signer/account by default
@@ -49,6 +49,8 @@ describe("MasterChef", function () {
     
     console.log("MasterChef deployed at ", masterChef.address);
 
+    await equal.initialMint(masterChef.address);
+
     // Test token contract
     const Token = await ethers.getContractFactory("Token");
     usdt = await upgrades.deployProxy(Token, [
@@ -72,27 +74,27 @@ describe("MasterChef", function () {
   });
 
   describe("Create pair", () => {
-    const usdt_1 = ethers.utils.parseUnits("1", 6);
-    const mim_1 = ethers.utils.parseUnits("1", 18);
-    const dai_1 = ethers.utils.parseUnits("1", 18);
+    const usdt_10 = ethers.utils.parseUnits("10", 6);
+    const mim_10 = ethers.utils.parseUnits("10", 18);
+    const dai_10 = ethers.utils.parseUnits("10", 18);
 
     it("deploy pair via PairFactory owner", async () => {
-        await mim.approve(router.address, mim_1);
-        await usdt.approve(router.address, usdt_1);
+        await mim.approve(router.address, mim_10);
+        await usdt.approve(router.address, usdt_10);
         await router.addLiquidity(
-            mim.address, usdt.address, true, mim_1, usdt_1, 0, 0, owner.address, Date.now()
+            mim.address, usdt.address, true, mim_10, usdt_10, 0, 0, owner.address, Date.now()
         );
         
-        await mim.approve(router.address, mim_1);
-        await usdt.approve(router.address, usdt_1);
+        await mim.approve(router.address, mim_10);
+        await usdt.approve(router.address, usdt_10);
         await router.addLiquidity(
-            mim.address, usdt.address, false, mim_1, usdt_1, 0, 0, owner.address, Date.now()
+            mim.address, usdt.address, false, mim_10, usdt_10, 0, 0, owner.address, Date.now()
         );
         
-        await mim.approve(router.address, mim_1);
-        await dai.approve(router.address, dai_1);
+        await mim.approve(router.address, mim_10);
+        await dai.approve(router.address, dai_10);
         await router.addLiquidity(
-            mim.address, dai.address, true, mim_1, dai_1, 0, 0, owner.address, Date.now()
+            mim.address, dai.address, true, mim_10, dai_10, 0, 0, owner.address, Date.now()
         );
         
         expect(await pairFactory.allPairsLength()).to.equal(3);
@@ -119,6 +121,10 @@ describe("MasterChef", function () {
       expect(await masterChef.endTime()).to.equal(endTime);
     });
 
+    it("should return right equalPerSecond", async() => {
+      expect(await masterChef.equalPerSecond()).to.equal(equalPerSecond);
+    });
+
     it("add lp pool", async () => {
       await masterChef.add(25, pair.address);
       await masterChef.add(75, pair2.address);
@@ -132,6 +138,35 @@ describe("MasterChef", function () {
       const duration = 28; // days
       await masterChef.setTime(startTime, duration);
       expect(await masterChef.endTime()).to.equal(startTime + duration * 24 * 3600);
+    });
+
+    it("deposit", async () => {
+      await ethers.provider.send('evm_increaseTime', [14 * 24 * 3600]); // fast-forward 2 weeks
+      await ethers.provider.send('evm_mine');
+      const lpAmount = await pair.balanceOf(owner.address);
+      await pair.approve(masterChef.address, lpAmount);
+      await masterChef.deposit(0, lpAmount);
+      expect(await pair.balanceOf(masterChef.address)).to.equal(lpAmount);
+    });
+
+    it("harvest reward", async() => {
+      await ethers.provider.send('evm_increaseTime', [7 * 24 * 3600]); // fast-forward 1 week
+      await ethers.provider.send('evm_mine');
+
+      const calcReward = 0.2583498677 * 7 * 24 * 3600 * 25 * Math.pow(10, 8);
+      expect(
+        await masterChef.pendingEQUAL(0, owner.address)
+      ).to.below(ethers.utils.parseUnits(calcReward.toString(), 18));
+
+      await masterChef.harvestAll();
+      expect(await masterChef.pendingEQUAL(0, owner.address)).to.equal(0);
+      console.log(await ve.balanceOfNFT(1));
+    });
+
+    it("withdraw", async() => {
+      const lpAmount = await pair.balanceOf(masterChef.address);
+      await masterChef.withdraw(0, lpAmount);
+      expect(await pair.balanceOf(masterChef.address)).to.equal(0);
     });
   });
 });
