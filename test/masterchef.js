@@ -33,9 +33,7 @@ describe("MasterChef", function () {
     console.log("PairFactory deployed to:", pairFactory.address);
 
     const Router = await ethers.getContractFactory("Router");
-    router = await upgrades.deployProxy(Router, [
-        pairFactory.address, owner.address
-    ]);
+    router = await Router.deploy(pairFactory.address, owner.address);
     await router.deployed();
 
     const MasterChef = await ethers.getContractFactory("MasterChef");

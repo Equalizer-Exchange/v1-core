@@ -128,9 +128,7 @@ describe("Core", function () {
       await factory.deployed();
 
       const Router = await ethers.getContractFactory("Router");
-      router = await upgrades.deployProxy(Router, [
-        factory.address, owner.address
-      ]);
+      router = await Router.deploy(factory.address, owner.address);
       await router.deployed();
     });
 

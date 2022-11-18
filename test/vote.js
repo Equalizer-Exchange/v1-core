@@ -55,9 +55,7 @@ describe("Vote Test Suite", () => {
         console.log("Minter deployed to ", minter.address);
 
         const Router = await ethers.getContractFactory("Router");
-        router = await upgrades.deployProxy(Router, [
-            pairFactory.address, owner.address
-        ]);
+        router = await Router.deploy(pairFactory.address, owner.address);
         await router.deployed();
         
         // Test token contract
