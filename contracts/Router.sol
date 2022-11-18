@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.9;
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./libraries/Math.sol";
 import "./interfaces/IERC20.sol";
 import "./interfaces/IPair.sol";
 import "./interfaces/IPairFactory.sol";
 import "./interfaces/IWETH.sol";
+import "./interfaces/IRouter.sol";
 
-contract Router is Initializable {
+contract Router is IRouter {
     struct Route {
         address from;
         address to;
@@ -16,16 +16,16 @@ contract Router is Initializable {
     }
 
     uint internal constant MINIMUM_LIQUIDITY = 10**3;
-    address public factory;
-    IWETH public weth;
-    bytes32 public pairCodeHash;
+    address public immutable factory;
+    IWETH public immutable weth;
+    bytes32 public immutable pairCodeHash;
 
     modifier ensure(uint deadline) {
         require(deadline >= block.timestamp, "Router: EXPIRED");
         _;
     }
 
-    function initialize(address _factory, address _weth) public initializer {
+    constructor(address _factory, address _weth) {
         factory = _factory;
         pairCodeHash = IPairFactory(_factory).pairCodeHash();
         weth = IWETH(_weth);
