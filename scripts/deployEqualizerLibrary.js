@@ -1,7 +1,7 @@
 const { ethers, upgrades } = require("hardhat");
 
 async function main() {
-    const ROUTER_ADDR = "0xbae81eBB5E897C7143c82725e1c2039C2D7e2a78";
+    const ROUTER_ADDR = "0x1A05EB736873485655F29a37DEf8a0AA87F5a447";
     const EqualizerLibrary = await ethers.getContractFactory("EqualizerLibrary");
     const equalizerLibrary = await upgrades.deployProxy(EqualizerLibrary, [ROUTER_ADDR]);
 
