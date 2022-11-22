@@ -16,6 +16,11 @@ async function main() {
 
     const startTime = 1668988800; // Monday, Nov 21 2022 0:00:00
     await merkleClaim.setStartTime(startTime);
+
+    /* const merkleClaimAddr = "0x6ef2Fa893319dB4A06e864d1dEE17A90fcC34130";
+    const merkleClaim = await ethers.getContractAt("MerkleClaim", merkleClaimAddr);
+
+    await merkleClaim.setClaimStatus(["0x2fef6742d30c81c518d7742d5c7ae6723f64a79c"], [false]); */
 }
 
 main().catch((error) => {

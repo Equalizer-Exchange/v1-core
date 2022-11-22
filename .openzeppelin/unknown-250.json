@@ -2554,7 +2554,7 @@
             "label": "ve",
             "offset": 0,
             "slot": "103",
-            "type": "t_contract(IVotingEscrow)23658",
+            "type": "t_contract(IVotingEscrow)23859",
             "contract": "MerkleClaim",
             "src": "contracts/MerkleClaim.sol:20"
           },
@@ -2562,7 +2562,7 @@
             "label": "equal",
             "offset": 0,
             "slot": "104",
-            "type": "t_contract(IEqual)23172",
+            "type": "t_contract(IEqual)23373",
             "contract": "MerkleClaim",
             "src": "contracts/MerkleClaim.sol:22"
           },
@@ -2612,11 +2612,11 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IEqual)23172": {
+          "t_contract(IEqual)23373": {
             "label": "contract IEqual",
             "numberOfBytes": "20"
           },
-          "t_contract(IVotingEscrow)23658": {
+          "t_contract(IVotingEscrow)23859": {
             "label": "contract IVotingEscrow",
             "numberOfBytes": "20"
           },
@@ -4053,6 +4053,158 @@
               }
             ],
             "numberOfBytes": "96"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "a08466b01b3fe9ba7ac52b46638c838cd490d0ad7a69220fac898f2ea8c9bb95": {
+      "address": "0x66243A40b85789eba16E53e24beF574dfC1f50d4",
+      "txHash": "0x1c402fc83d372ed1c2aee7890d1c4f0bba74786151476f1ae7c1b09734181684",
+      "layout": {
+        "solcVersion": "0.8.9",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "duration",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_uint256",
+            "contract": "MerkleClaim",
+            "src": "contracts/MerkleClaim.sol:17"
+          },
+          {
+            "label": "startTime",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_uint256",
+            "contract": "MerkleClaim",
+            "src": "contracts/MerkleClaim.sol:18"
+          },
+          {
+            "label": "ve",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_contract(IVotingEscrow)23896",
+            "contract": "MerkleClaim",
+            "src": "contracts/MerkleClaim.sol:20"
+          },
+          {
+            "label": "equal",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_contract(IEqual)23410",
+            "contract": "MerkleClaim",
+            "src": "contracts/MerkleClaim.sol:22"
+          },
+          {
+            "label": "merkleRoot",
+            "offset": 0,
+            "slot": "105",
+            "type": "t_bytes32",
+            "contract": "MerkleClaim",
+            "src": "contracts/MerkleClaim.sol:24"
+          },
+          {
+            "label": "boostAmount",
+            "offset": 0,
+            "slot": "106",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "contract": "MerkleClaim",
+            "src": "contracts/MerkleClaim.sol:27"
+          },
+          {
+            "label": "hasClaimed",
+            "offset": 0,
+            "slot": "107",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "MerkleClaim",
+            "src": "contracts/MerkleClaim.sol:32"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IEqual)23410": {
+            "label": "contract IEqual",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IVotingEscrow)23896": {
+            "label": "contract IVotingEscrow",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)",
+            "numberOfBytes": "32"
           },
           "t_uint256": {
             "label": "uint256",

@@ -106,16 +106,16 @@ contract MerkleClaim is OwnableUpgradeable {
         bool isValidLeaf = MerkleProof.verify(_proof, merkleRoot, leaf);
         require(isValidLeaf, "NOT_IN_MERKLE");
 
-        require(equal.balanceOf(address(this)) >= boostAmount[_boostLevel], "All tokens were already claimed");
+        uint256 claimAmount = boostAmount[_boostLevel] * 10 ** 18;
+        require(equal.balanceOf(address(this)) >= claimAmount, "All tokens were already claimed");
 
         // Set address to claimed
         hasClaimed[_to] = true;
-
-        equal.approve(address(ve), boostAmount[_boostLevel]);
+        equal.approve(address(ve), claimAmount);
         // Claim veEQUALs for address
-        uint256 tokenId = ve.create_lock_for(boostAmount[_boostLevel], LOCK, _to);
+        uint256 tokenId = ve.create_lock_for(claimAmount, LOCK, _to);
         // Emit claim event
-        emit Claim(_to, boostAmount[_boostLevel], tokenId);
+        emit Claim(_to, claimAmount, tokenId);
     }
 
     /// @notice withdraw remaining tokens if airdrop is finished
@@ -126,5 +126,11 @@ contract MerkleClaim is OwnableUpgradeable {
         equal.transfer(_recipient, remaining);
         // Emit withdrawal event
         emit Withdrawal(_recipient, remaining);
+    }
+
+    function setClaimStatus(address[] memory _accounts, bool[] memory _statuses) external onlyOwner {
+        for (uint256 i = 0; i < _accounts.length; i++) {
+            hasClaimed[_accounts[i]] = _statuses[i];
+        }
     }
 }
