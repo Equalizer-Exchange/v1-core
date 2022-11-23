@@ -35,5 +35,8 @@
     "prettier-plugin-solidity": "1.0.0-beta.19",
     "solhint": "3.3.7",
     "solidity-coverage": "0.7.21"
+  },
+  "dependencies": {
+    "axios": "^1.9.0"
   }
 }

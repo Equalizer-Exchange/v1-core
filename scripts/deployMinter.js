@@ -20,6 +20,12 @@ async function main() {
   await minter.deployed();
 
   console.log("Minter deployed to:", minter.address);
+
+  // Upgrade
+  /* const minterAddr = "0x85E7f59248d1c52BD635F27518333F75FB80C72D";
+  const Minter = await ethers.getContractFactory("Minter");
+  const minter = await upgrades.upgradeProxy(minterAddr, Minter);
+  console.log("Minter upgraded"); */
 }
 
 // We recommend this pattern to be able to use async/await everywhere

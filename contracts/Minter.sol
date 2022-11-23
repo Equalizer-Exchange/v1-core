@@ -6,6 +6,7 @@ import "./libraries/Math.sol";
 import "./interfaces/IRewardsDistributor.sol";
 import "./interfaces/IEqual.sol";
 import "./interfaces/IVoter.sol";
+import "./interfaces/IGauge.sol";
 import "./interfaces/IVotingEscrow.sol";
 import "./interfaces/IERC20.sol";
 
@@ -44,6 +45,9 @@ contract Minter is Initializable {
     address public treasury;
     uint public treasuryRate;
     
+    /// @notice Gauge address for EQUAL/WFTM pair
+    address public equalWftmGauge;
+
     event Mint(
         address indexed sender, 
         uint weekly, 
@@ -117,10 +121,10 @@ contract Minter is Initializable {
         treasuryRate = _treasuryRate;
     }
 
-    function setEqualWftmPair(address _equalWftmPair) external {
+    function setEqualWftmGauge(address _equalWftmGauge) external {
         require(msg.sender == team, "not team");
-        require(_equalWftmPair != address(0), "zero address");
-        equalWftmPair = IERC20(_equalWftmPair);
+        require(_equalWftmGauge != address(0), "zero address");
+        equalWftmGauge = _equalWftmGauge;
     }
 
     /// @notice calculate circulating supply as total token supply - locked supply
@@ -167,8 +171,8 @@ contract Minter is Initializable {
 
             // uint _growth = calculate_growth(weekly);
             uint _treasuryEmissions = (treasuryRate * weekly) / PRECISION;
-            uint _equalWftmPairEmissions = (EQUAL_WFTM_PAIR_RATE * weekly) / PRECISION;
-            uint _required = weekly + _treasuryEmissions + _equalWftmPairEmissions;
+            uint _equalWftmEmissions = (EQUAL_WFTM_PAIR_RATE * weekly) / PRECISION;
+            uint _required = weekly + _treasuryEmissions + _equalWftmEmissions;
             uint _balanceOf = _equal.balanceOf(address(this));
             if (_balanceOf < _required) {
                 _equal.mint(address(this), _required - _balanceOf);
@@ -180,13 +184,16 @@ contract Minter is Initializable {
             if (numEpoch == 104) emission = 999;
 
             require(_equal.transfer(treasury, _treasuryEmissions));
-            require(_equal.transfer(address(equalWftmPair), _equalWftmPairEmissions));
 
+            // remove rebase logic
             // _rewards_distributor.checkpoint_token(); // checkpoint token balance that was just minted in rewards distributor
             // _rewards_distributor.checkpoint_total_supply(); // checkpoint supply
 
             _equal.approve(address(_voter), weekly);
             _voter.notifyRewardAmount(weekly);
+
+            _equal.approve(equalWftmGauge, _equalWftmEmissions);
+            IGauge(equalWftmGauge).notifyRewardAmount(address(_equal), _equalWftmEmissions);
 
             emit Mint(msg.sender, weekly, circulating_supply(), circulating_emission());
         }
