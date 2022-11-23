@@ -3180,7 +3180,7 @@
             "label": "_equal",
             "offset": 0,
             "slot": "3",
-            "type": "t_contract(IEqual)23304",
+            "type": "t_contract(IEqual)23410",
             "contract": "Minter",
             "src": "contracts/Minter.sol:29"
           },
@@ -3188,7 +3188,7 @@
             "label": "_voter",
             "offset": 0,
             "slot": "4",
-            "type": "t_contract(IVoter)23660",
+            "type": "t_contract(IVoter)23766",
             "contract": "Minter",
             "src": "contracts/Minter.sol:30"
           },
@@ -3196,7 +3196,7 @@
             "label": "_ve",
             "offset": 0,
             "slot": "5",
-            "type": "t_contract(IVotingEscrow)23790",
+            "type": "t_contract(IVotingEscrow)23896",
             "contract": "Minter",
             "src": "contracts/Minter.sol:31"
           },
@@ -3204,7 +3204,7 @@
             "label": "_rewards_distributor",
             "offset": 0,
             "slot": "6",
-            "type": "t_contract(IRewardsDistributor)23563",
+            "type": "t_contract(IRewardsDistributor)23669",
             "contract": "Minter",
             "src": "contracts/Minter.sol:32"
           },
@@ -3212,7 +3212,7 @@
             "label": "equalWftmPair",
             "offset": 0,
             "slot": "7",
-            "type": "t_contract(IERC20)23246",
+            "type": "t_contract(IERC20)23352",
             "contract": "Minter",
             "src": "contracts/Minter.sol:34"
           },
@@ -3282,23 +3282,23 @@
             "label": "bool",
             "numberOfBytes": "1"
           },
-          "t_contract(IERC20)23246": {
+          "t_contract(IERC20)23352": {
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IEqual)23304": {
+          "t_contract(IEqual)23410": {
             "label": "contract IEqual",
             "numberOfBytes": "20"
           },
-          "t_contract(IRewardsDistributor)23563": {
+          "t_contract(IRewardsDistributor)23669": {
             "label": "contract IRewardsDistributor",
             "numberOfBytes": "20"
           },
-          "t_contract(IVoter)23660": {
+          "t_contract(IVoter)23766": {
             "label": "contract IVoter",
             "numberOfBytes": "20"
           },
-          "t_contract(IVotingEscrow)23790": {
+          "t_contract(IVotingEscrow)23896": {
             "label": "contract IVotingEscrow",
             "numberOfBytes": "20"
           },
@@ -4205,6 +4205,190 @@
           "t_mapping(t_uint256,t_uint256)": {
             "label": "mapping(uint256 => uint256)",
             "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "84321ead2cc4c91212c4b0bb950cee1d044401f3358d445001cbcb8071399e52": {
+      "address": "0xab6904e080bDB2c2e245cDcb7D3a7901f0bC963e",
+      "txHash": "0x7daa7f792d78f4fc6d3200dd70942e86a8c903a1ee91afba633ada684447e46a",
+      "layout": {
+        "solcVersion": "0.8.9",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "emission",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256",
+            "contract": "Minter",
+            "src": "contracts/Minter.sol:27"
+          },
+          {
+            "label": "numEpoch",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256",
+            "contract": "Minter",
+            "src": "contracts/Minter.sol:28"
+          },
+          {
+            "label": "_equal",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_contract(IEqual)23419",
+            "contract": "Minter",
+            "src": "contracts/Minter.sol:30"
+          },
+          {
+            "label": "_voter",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_contract(IVoter)23775",
+            "contract": "Minter",
+            "src": "contracts/Minter.sol:31"
+          },
+          {
+            "label": "_ve",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_contract(IVotingEscrow)23905",
+            "contract": "Minter",
+            "src": "contracts/Minter.sol:32"
+          },
+          {
+            "label": "_rewards_distributor",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_contract(IRewardsDistributor)23678",
+            "contract": "Minter",
+            "src": "contracts/Minter.sol:33"
+          },
+          {
+            "label": "equalWftmPair",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_contract(IERC20)23361",
+            "contract": "Minter",
+            "src": "contracts/Minter.sol:35"
+          },
+          {
+            "label": "weekly",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_uint256",
+            "contract": "Minter",
+            "src": "contracts/Minter.sol:38"
+          },
+          {
+            "label": "active_period",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_uint256",
+            "contract": "Minter",
+            "src": "contracts/Minter.sol:39"
+          },
+          {
+            "label": "owner",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_address",
+            "contract": "Minter",
+            "src": "contracts/Minter.sol:41"
+          },
+          {
+            "label": "team",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_address",
+            "contract": "Minter",
+            "src": "contracts/Minter.sol:42"
+          },
+          {
+            "label": "pendingTeam",
+            "offset": 0,
+            "slot": "12",
+            "type": "t_address",
+            "contract": "Minter",
+            "src": "contracts/Minter.sol:43"
+          },
+          {
+            "label": "treasury",
+            "offset": 0,
+            "slot": "13",
+            "type": "t_address",
+            "contract": "Minter",
+            "src": "contracts/Minter.sol:45"
+          },
+          {
+            "label": "treasuryRate",
+            "offset": 0,
+            "slot": "14",
+            "type": "t_uint256",
+            "contract": "Minter",
+            "src": "contracts/Minter.sol:46"
+          },
+          {
+            "label": "equalWftmGauge",
+            "offset": 0,
+            "slot": "15",
+            "type": "t_address",
+            "contract": "Minter",
+            "src": "contracts/Minter.sol:49"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)23361": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IEqual)23419": {
+            "label": "contract IEqual",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IRewardsDistributor)23678": {
+            "label": "contract IRewardsDistributor",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IVoter)23775": {
+            "label": "contract IVoter",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IVotingEscrow)23905": {
+            "label": "contract IVotingEscrow",
+            "numberOfBytes": "20"
           },
           "t_uint256": {
             "label": "uint256",
